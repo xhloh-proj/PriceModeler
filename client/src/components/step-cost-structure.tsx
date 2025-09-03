@@ -728,7 +728,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <TabsContent value="total" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-purple-900">Total Cost Summary ($'000s)</CardTitle>
+              <CardTitle className="text-purple-900">Cash Flow Projection ($'000s)</CardTitle>
               <CardDescription>
                 Complete overview of all costs with Capex amortized over 36 months.
               </CardDescription>
