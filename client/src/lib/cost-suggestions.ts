@@ -22,7 +22,16 @@ export interface CostSuggestions {
 }
 
 // Fixed costs are now minimal - software licenses, office rental, legal compliance moved to Corporate Overheads
-const commonFixedCosts: CostItem[] = [];
+const commonFixedCosts: CostItem[] = [
+  {
+    id: "monthly-maintenance",
+    name: "Monthly Maintenance",
+    monthlyAmounts: [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+    icon: "wrench",
+    isCommon: true,
+    unit: "monthly"
+  }
+];
 
 // Variable costs that are common to all product categories
 const commonVariableCosts: CostItem[] = [

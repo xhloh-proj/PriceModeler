@@ -52,7 +52,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     augmentedResources: 2,
   });
   
-  const [maintenanceCost, setMaintenanceCost] = useState(50);
   const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
   const [currentTab, setCurrentTab] = useState("fixed");
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({
@@ -169,7 +168,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       variableCosts: updatedVariableCosts,
       oneTimeCosts: updatedOneTimeCosts,
     });
-  }, [employeeInputs, maintenanceCost, corporateOverheadRate, data.productCategory]);
+  }, [employeeInputs, corporateOverheadRate, data.productCategory]);
 
   const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
     setEmployeeInputs(prev => ({ ...prev, [field]: value }));
@@ -618,16 +617,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     value={employeeInputs.augmentedResources}
                     onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
                     data-testid="input-augmented-resources"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="maintenance-cost">Monthly Maintenance $'000s</Label>
-                  <Input
-                    id="maintenance-cost"
-                    type="number"
-                    value={maintenanceCost}
-                    onChange={(e) => setMaintenanceCost(Number(e.target.value))}
-                    data-testid="input-maintenance-cost"
                   />
                 </div>
                 <div>

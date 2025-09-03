@@ -49,7 +49,6 @@ interface StepSummaryProps {
 }
 
 export default function StepSummary({ data, onPrevious, onSave, onExport }: StepSummaryProps) {
-  const [pnlExpanded, setPnlExpanded] = useState(false);
   const [fixedCostExpanded, setFixedCostExpanded] = useState(false);
   const [variableCostExpanded, setVariableCostExpanded] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState<number>(0);
@@ -302,26 +301,17 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
           </CardContent>
         </Card>
 
-        {/* Expandable P&L Statement */}
+        {/* P&L Statement */}
         <Card className="mb-6">
-          <Collapsible open={pnlExpanded} onOpenChange={setPnlExpanded}>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
-                      Profit & Loss Statement (5-Year)
-                    </CardTitle>
-                    <CardDescription>
-                      Detailed P&L analysis using target pricing of ${pricing.target}/unit
-                    </CardDescription>
-                  </div>
-                  {pnlExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Profit & Loss Statement (5-Year)
+            </CardTitle>
+            <CardDescription>
+              Detailed P&L analysis using target pricing of ${pricing.target}/unit
+            </CardDescription>
+          </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
@@ -434,7 +424,7 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
                       </tr>
                       
                       <tr className="bg-gray-100 dark:bg-gray-800 font-bold">
-                        <td className="border border-gray-200 dark:border-gray-700 p-3 text-gray-900 dark:text-gray-100">Gross Profit</td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-3 text-gray-900 dark:text-gray-100">EBIT</td>
                         {pnlData.map((yearData, index) => (
                           <td key={index} className={`border border-gray-200 dark:border-gray-700 p-3 text-center ${yearData.grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             ${yearData.grossProfit.toLocaleString()}
@@ -449,11 +439,9 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
                 </div>
                 
                 <div className="mt-4 text-sm text-muted-foreground">
-                  <p><strong>Notes:</strong> All amounts in thousands. Capex depreciated in Year 1. TCRR = Total Cost Recovery Ratio.</p>
+                  <p><strong>Notes:</strong> All amounts in thousands. Capex depreciated over 3 years. TCRR = Total Cost Recovery Ratio. EBIT = Earnings Before Interest & Tax.</p>
                 </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
+          </CardContent>
         </Card>
 
         {/* Navigation */}
