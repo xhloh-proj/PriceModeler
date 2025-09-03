@@ -24,7 +24,7 @@ export default function StepProductSetup({ data, onChange, onNext }: StepProduct
     onChange({ ...data, [field]: value });
   };
 
-  const canProceed = data.name && data.category && data.targetMarket;
+  const canProceed = data.name && data.category;
 
   return (
     <div className="p-8">
@@ -63,12 +63,9 @@ export default function StepProductSetup({ data, onChange, onNext }: StepProduct
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="saas">SaaS Application</SelectItem>
-                    <SelectItem value="mobile">Mobile App</SelectItem>
-                    <SelectItem value="web">Web Application</SelectItem>
-                    <SelectItem value="api">API/Platform</SelectItem>
-                    <SelectItem value="desktop">Desktop Software</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="infrastructure">Infrastructure Products</SelectItem>
+                    <SelectItem value="platform">Platform Products</SelectItem>
+                    <SelectItem value="applications">Citizen/Employee Applications</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -89,8 +86,11 @@ export default function StepProductSetup({ data, onChange, onNext }: StepProduct
               
               <div>
                 <Label htmlFor="target-market" className="text-sm font-medium text-card-foreground">
-                  Target Market
+                  Target Market <span className="text-muted-foreground">(Optional)</span>
                 </Label>
+                <p className="text-xs text-muted-foreground mt-1 mb-2">
+                  This helps tailor cost suggestions and pricing benchmarks to your audience size and complexity
+                </p>
                 <Select value={data.targetMarket} onValueChange={(value) => handleInputChange('targetMarket', value)}>
                   <SelectTrigger className="mt-2" data-testid="select-target-market">
                     <SelectValue placeholder="Select target market" />
