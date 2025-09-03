@@ -43,7 +43,7 @@ interface StepCostStructureProps {
   onPrevious: () => void;
 }
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12"];
 
 export default function StepCostStructure({ data, onChange, onNext, onPrevious }: StepCostStructureProps) {
   const [employeeInputs, setEmployeeInputs] = useState<EmployeeInputs>({
@@ -292,11 +292,12 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       return cost;
     });
 
-    if (costType === 'fixed') {
-      onChange({ ...data, fixedCosts: updatedCosts });
-    } else {
-      onChange({ ...data, variableCosts: updatedCosts });
-    }
+    const updatedData = {
+      ...data,
+      [costType === 'fixed' ? 'fixedCosts' : 'variableCosts']: updatedCosts
+    };
+    
+    onChange(updatedData);
   };
 
   const handleTabNavigation = () => {
@@ -429,7 +430,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
               Add Fixed Cost
             </Button>
             <Button onClick={() => copyAcrossAllMonths('fixed')} variant="outline" data-testid="button-copy-fixed-costs">
-              Copy Jan Values Across All Months
+              Copy P1 Values Across All Months
             </Button>
           </>
         )}
@@ -439,7 +440,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
               Add Variable Cost
             </Button>
             <Button onClick={() => copyAcrossAllMonths('variable')} variant="outline" data-testid="button-copy-variable-costs">
-              Copy Jan Values Across All Months
+              Copy P1 Values Across All Months
             </Button>
           </>
         )}
