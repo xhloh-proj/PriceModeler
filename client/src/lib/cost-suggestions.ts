@@ -31,7 +31,7 @@ const commonVariableCosts: CostItem[] = [
     name: "Cloud hosting",
     monthlyAmounts: [500, 600, 700, 800, 1000, 1200, 1500, 1800, 2200, 2600, 3100, 3600],
     icon: "cloud",
-    unit: "compute/storage scaling",
+    unit: "total monthly cost",
     isCommon: true
   }
 ];
@@ -93,7 +93,7 @@ const infrastructureUniqueVariableCosts: CostItem[] = [
     name: "Bandwidth charges",
     monthlyAmounts: [1000, 1200, 1400, 1600, 2000, 2400, 3000, 3600, 4400, 5200, 6200, 7200],
     icon: "wifi",
-    unit: "per GB transferred",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -101,7 +101,7 @@ const infrastructureUniqueVariableCosts: CostItem[] = [
     name: "Cross-region replication",
     monthlyAmounts: [800, 960, 1120, 1280, 1600, 1920, 2400, 2880, 3520, 4160, 4960, 5760],
     icon: "globe",
-    unit: "per replication",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -109,7 +109,7 @@ const infrastructureUniqueVariableCosts: CostItem[] = [
     name: "Hardware scaling costs",
     monthlyAmounts: [1200, 1440, 1680, 1920, 2400, 2880, 3600, 4320, 5280, 6240, 7440, 8640],
     icon: "server",
-    unit: "per server instance",
+    unit: "total monthly cost",
     isCommon: false
   }
 ];
@@ -163,7 +163,7 @@ const platformUniqueVariableCosts: CostItem[] = [
     name: "Developer onboarding",
     monthlyAmounts: [500, 600, 700, 800, 1000, 1200, 1500, 1800, 2200, 2600, 3100, 3600],
     icon: "user-plus",
-    unit: "per developer",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -171,7 +171,7 @@ const platformUniqueVariableCosts: CostItem[] = [
     name: "Multi-tenant resources",
     monthlyAmounts: [1200, 1440, 1680, 1920, 2400, 2880, 3600, 4320, 5280, 6240, 7440, 8640],
     icon: "database",
-    unit: "per tenant",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -179,7 +179,7 @@ const platformUniqueVariableCosts: CostItem[] = [
     name: "API gateway",
     monthlyAmounts: [800, 960, 1120, 1280, 1600, 1920, 2400, 2880, 3520, 4160, 4960, 5760],
     icon: "layers",
-    unit: "per API call",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -187,7 +187,7 @@ const platformUniqueVariableCosts: CostItem[] = [
     name: "Portal maintenance",
     monthlyAmounts: [600, 720, 840, 960, 1200, 1440, 1800, 2160, 2640, 3120, 3720, 4320],
     icon: "globe",
-    unit: "per portal",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -195,7 +195,7 @@ const platformUniqueVariableCosts: CostItem[] = [
     name: "Penetration testing",
     monthlyAmounts: [1000, 1000, 1000, 1200, 1200, 1200, 1500, 1500, 1500, 1800, 1800, 1800],
     icon: "shield",
-    unit: "quarterly testing",
+    unit: "total monthly cost",
     isCommon: false
   }
 ];
@@ -243,7 +243,7 @@ const applicationUniqueVariableCosts: CostItem[] = [
     name: "Push notifications/Postman",
     monthlyAmounts: [150, 180, 210, 240, 300, 360, 450, 540, 660, 780, 930, 1080],
     icon: "mail",
-    unit: "per message sent",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -251,7 +251,7 @@ const applicationUniqueVariableCosts: CostItem[] = [
     name: "App store transaction fees",
     monthlyAmounts: [300, 360, 420, 480, 600, 720, 900, 1080, 1320, 1560, 1860, 2160],
     icon: "credit-card",
-    unit: "% of revenue",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -259,7 +259,7 @@ const applicationUniqueVariableCosts: CostItem[] = [
     name: "User analytics",
     monthlyAmounts: [400, 480, 560, 640, 800, 960, 1200, 1440, 1760, 2080, 2480, 2880],
     icon: "bar-chart",
-    unit: "per active user",
+    unit: "total monthly cost",
     isCommon: false
   },
   {
@@ -267,7 +267,7 @@ const applicationUniqueVariableCosts: CostItem[] = [
     name: "App security testing",
     monthlyAmounts: [1000, 1000, 1000, 1200, 1200, 1200, 1500, 1500, 1500, 1800, 1800, 1800],
     icon: "shield",
-    unit: "quarterly testing",
+    unit: "total monthly cost",
     isCommon: false
   }
 ];

@@ -461,7 +461,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   const renderCostTable = (costs: CostItem[], costType: 'fixed' | 'variable') => (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground mb-2 space-y-1">
-        <div>All values in thousands ($'000s)</div>
+        <div>All values in $'000s</div>
         <div>📋 <strong>Excel Paste Support:</strong> Select cells in Excel → Copy (Ctrl+C) → Paste into any cell (Ctrl+V) to auto-fill multiple months</div>
         <div>• Single row: Paste into any cell to fill across months for that cost item</div>
         <div>• Multiple rows: Paste multiple Excel rows to fill multiple cost items at once</div>
@@ -476,7 +476,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   {month}
                 </th>
               ))}
-              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total (k)</th>
+              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total $'000s</th>
             </tr>
           </thead>
           <tbody>
@@ -568,7 +568,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Cost Structure</h2>
         <p className="text-muted-foreground">
-          Define your cost structure with simplified inputs. All values are expressed in thousands.
+          Define your cost structure with simplified inputs. All values are expressed in $'000s.
         </p>
       </div>
 
@@ -621,7 +621,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="maintenance-cost">Monthly Maintenance (thousands)</Label>
+                  <Label htmlFor="maintenance-cost">Monthly Maintenance $'000s</Label>
                   <Input
                     id="maintenance-cost"
                     type="number"
@@ -646,7 +646,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-blue-900">Fixed Costs (thousands)</CardTitle>
+              <CardTitle className="text-blue-900">Fixed Costs $'000s</CardTitle>
               <CardDescription>
                 Costs that remain constant regardless of usage or scale. Employee costs are auto-calculated.
               </CardDescription>
@@ -660,9 +660,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <TabsContent value="variable" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-orange-900">Variable Costs (thousands)</CardTitle>
+              <CardTitle className="text-orange-900">Variable Costs $'000s</CardTitle>
               <CardDescription>
-                Costs that change based on usage, scale, or customer volume.
+                Costs that change based on usage, scale, or customer volume. Enter total monthly amounts (not per-unit rates).
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -674,7 +674,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <TabsContent value="onetime" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-green-900">Capex (thousands)</CardTitle>
+              <CardTitle className="text-green-900">Capex $'000s</CardTitle>
               <CardDescription>
                 Capital expenditures, initial setup costs, and one-off investments.
               </CardDescription>
@@ -685,7 +685,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
-                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount (thousands)</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount $'000s</th>
                     </tr>
                   </thead>
                   <tbody>
