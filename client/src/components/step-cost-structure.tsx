@@ -284,20 +284,24 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
   const copyAcrossAllMonths = (costType: 'fixed' | 'variable') => {
     const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+    
+    // Apply to all costs including common ones (the user should be able to copy any cost)
     const updatedCosts = costs.map(cost => {
-      if (!cost.isCommon) { // Only apply to manually entered costs
-        const firstMonthValue = cost.monthlyAmounts[0] || 0;
-        return { ...cost, monthlyAmounts: Array(12).fill(firstMonthValue) };
-      }
-      return cost;
+      const firstMonthValue = cost.monthlyAmounts[0] || 0;
+      return { ...cost, monthlyAmounts: Array(12).fill(firstMonthValue) };
     });
 
-    const updatedData = {
-      ...data,
-      [costType === 'fixed' ? 'fixedCosts' : 'variableCosts']: updatedCosts
-    };
-    
-    onChange(updatedData);
+    if (costType === 'fixed') {
+      onChange({ 
+        ...data, 
+        fixedCosts: updatedCosts 
+      });
+    } else {
+      onChange({ 
+        ...data, 
+        variableCosts: updatedCosts 
+      });
+    }
   };
 
   const handleTabNavigation = () => {
