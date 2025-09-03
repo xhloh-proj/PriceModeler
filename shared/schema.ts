@@ -17,6 +17,7 @@ export const pricingProjects = pgTable("pricing_projects", {
   growthRate: real("growth_rate").default(0),
   churnRate: real("churn_rate").default(0),
   marketSize: integer("market_size").default(0),
+  productDemand: jsonb("product_demand").default([0, 0, 0, 0, 0]).$type<number[]>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

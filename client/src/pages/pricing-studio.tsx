@@ -63,13 +63,11 @@ export default function PricingStudio() {
     setProjectData(prev => ({ ...prev, ...data }));
   };
 
-  const handleDemandDataChange = (data: { demand: any; fixedCosts: any[]; variableCosts: any[]; oneTimeCosts: any[] }) => {
+  const handleDemandDataChange = (data: { growthRate: number; productDemand: number[] }) => {
     setProjectData(prev => ({
       ...prev,
-      initialUsers: data.demand.initialUsers,
-      growthRate: data.demand.growthRate,
-      churnRate: data.demand.churnRate,
-      marketSize: data.demand.marketSize,
+      growthRate: data.growthRate,
+      productDemand: data.productDemand,
     }));
   };
 
@@ -141,15 +139,8 @@ export default function PricingStudio() {
         return (
           <StepDemandAnalysis
             data={{
-              demand: {
-                initialUsers: projectData.initialUsers || 0,
-                growthRate: projectData.growthRate || 0,
-                churnRate: projectData.churnRate || 0,
-                marketSize: projectData.marketSize || 0,
-              },
-              fixedCosts: projectData.fixedCosts || [],
-              variableCosts: projectData.variableCosts || [],
-              oneTimeCosts: projectData.oneTimeCosts || [],
+              growthRate: projectData.growthRate || 0,
+              productDemand: projectData.productDemand || [0, 0, 0, 0, 0],
             }}
             onChange={handleDemandDataChange}
             onPrevious={() => setCurrentStep(2)}
