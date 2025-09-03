@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield } from "lucide-react";
+import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface CostItem {
@@ -54,6 +54,11 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   const [maintenanceCost, setMaintenanceCost] = useState(50);
   const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
   const [currentTab, setCurrentTab] = useState("fixed");
+  const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({
+    fixed: false,
+    variable: false,
+    capex: false
+  });
 
   // Calculate employee costs in thousands (240k per person annually)
   const calculateEmployeeCosts = (count: number) => {
@@ -319,6 +324,13 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   const calculateAmortizedCapex = () => {
     const totalCapex = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
     return Array(12).fill(Number((totalCapex / 36).toFixed(1))); // Amortize over 36 months
+  };
+
+  const toggleCategoryExpansion = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   const handlePasteData = (costType: 'fixed' | 'variable', costId: string, event: React.ClipboardEvent) => {
@@ -648,8 +660,20 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     </tr>
                   </thead>
                   <tbody>
+                    {/* Fixed Costs Category */}
                     <tr>
-                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-blue-900">Fixed Costs</td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-blue-900">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleCategoryExpansion('fixed')}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1"
+                            data-testid="button-toggle-fixed"
+                          >
+                            {expandedCategories.fixed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          </button>
+                          Fixed Costs
+                        </div>
+                      </td>
                       {months.map((_, monthIndex) => {
                         const monthlyTotal = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
                         return (
@@ -662,8 +686,36 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         {data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
                       </td>
                     </tr>
+                    {expandedCategories.fixed && data.fixedCosts.map((cost) => (
+                      <tr key={cost.id} className="bg-blue-50 dark:bg-blue-950/20">
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 pl-8 text-sm text-gray-600 dark:text-gray-400">
+                          {cost.name}
+                        </td>
+                        {cost.monthlyAmounts.map((amount, monthIndex) => (
+                          <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                            {amount.toFixed(1)}
+                          </td>
+                        ))}
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Variable Costs Category */}
                     <tr>
-                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-orange-900">Variable Costs</td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-orange-900">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleCategoryExpansion('variable')}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1"
+                            data-testid="button-toggle-variable"
+                          >
+                            {expandedCategories.variable ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          </button>
+                          Variable Costs
+                        </div>
+                      </td>
                       {months.map((_, monthIndex) => {
                         const monthlyTotal = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
                         return (
@@ -676,8 +728,36 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         {data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
                       </td>
                     </tr>
+                    {expandedCategories.variable && data.variableCosts.map((cost) => (
+                      <tr key={cost.id} className="bg-orange-50 dark:bg-orange-950/20">
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 pl-8 text-sm text-gray-600 dark:text-gray-400">
+                          {cost.name}
+                        </td>
+                        {cost.monthlyAmounts.map((amount, monthIndex) => (
+                          <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                            {amount.toFixed(1)}
+                          </td>
+                        ))}
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Capex Category */}
                     <tr>
-                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-green-900">Capex (Amortized)</td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-green-900">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleCategoryExpansion('capex')}
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1"
+                            data-testid="button-toggle-capex"
+                          >
+                            {expandedCategories.capex ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          </button>
+                          Capex (Amortized)
+                        </div>
+                      </td>
                       {calculateAmortizedCapex().map((amount, monthIndex) => (
                         <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center">
                           {amount}
@@ -687,6 +767,25 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         {(data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0)).toFixed(1)}
                       </td>
                     </tr>
+                    {expandedCategories.capex && data.oneTimeCosts.map((cost) => (
+                      <tr key={cost.id} className="bg-green-50 dark:bg-green-950/20">
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 pl-8 text-sm text-gray-600 dark:text-gray-400">
+                          {cost.name} (amortized over 36 months)
+                        </td>
+                        {calculateAmortizedCapex().map((_, monthIndex) => {
+                          const amortizedAmount = cost.amount / 36;
+                          return (
+                            <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                              {amortizedAmount.toFixed(1)}
+                            </td>
+                          );
+                        })}
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {cost.amount.toFixed(1)}
+                        </td>
+                      </tr>
+                    ))}
+
                     <tr className="bg-gray-100 dark:bg-gray-800">
                       <td className="border border-gray-200 dark:border-gray-700 p-2 font-bold">Total Monthly Cost</td>
                       {months.map((_, monthIndex) => {
