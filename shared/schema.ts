@@ -11,7 +11,7 @@ export const pricingProjects = pgTable("pricing_projects", {
   targetMarket: text("target_market"),
   fixedCosts: jsonb("fixed_costs").default([]).$type<Array<{id: string; name: string; monthlyAmounts: number[]; icon: string; isCommon: boolean}>>(),
   variableCosts: jsonb("variable_costs").default([]).$type<Array<{id: string; name: string; monthlyAmounts: number[]; unit: string; icon: string; isCommon: boolean}>>(),
-  oneTimeCosts: jsonb("one_time_costs").default([]).$type<Array<{id: string; name: string; amount: number; icon: string; isCommon: boolean}>>(),
+  oneTimeCosts: jsonb("one_time_costs").default([]).$type<Array<{id: string; name: string; amount: number; icon: string; isCommon: boolean; startMonth?: number; endMonth?: number}>>(),
   costIncreaseAssumptions: jsonb("cost_increase_assumptions").default([]).$type<Array<{year: number; fixedIncrease: number; variableIncrease: number}>>(),
   initialUsers: integer("initial_users").default(0),
   growthRate: real("growth_rate").default(0),

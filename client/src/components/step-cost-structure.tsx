@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getCostSuggestions } from "@/lib/cost-suggestions";
@@ -22,6 +23,8 @@ interface OneTimeCostItem {
   amount: number;
   icon: string;
   isCommon: boolean;
+  startMonth?: number;
+  endMonth?: number;
 }
 
 interface CostStructureData {
@@ -256,6 +259,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       amount: 0,
       icon: 'shield',
       isCommon: false,
+      startMonth: 1,
+      endMonth: 1,
     };
     onChange({ 
       ...data, 
@@ -298,8 +303,23 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   };
 
   const calculateAmortizedCapex = () => {
-    const totalCapex = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
-    return Array(12).fill(Number((totalCapex / 36).toFixed(1))); // Amortize over 36 months
+    const monthlyAmounts = Array(12).fill(0);
+    
+    data.oneTimeCosts.forEach(cost => {
+      const startMonth = (cost.startMonth || 1) - 1; // Convert to 0-based index
+      const endMonth = (cost.endMonth || 1) - 1; // Convert to 0-based index
+      const numMonths = Math.max(1, endMonth - startMonth + 1);
+      const monthlyAmount = cost.amount / numMonths;
+      
+      // Spread the cost across the selected months
+      for (let i = startMonth; i <= endMonth; i++) {
+        if (i >= 0 && i < 12) {
+          monthlyAmounts[i] += monthlyAmount;
+        }
+      }
+    });
+    
+    return monthlyAmounts.map(amount => Number(amount.toFixed(1)));
   };
 
   const toggleCategoryExpansion = (category: string) => {
@@ -675,6 +695,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount $'000s</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Start Month</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">End Month</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -711,6 +733,50 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                               className="text-center h-8"
                               data-testid={`input-onetime-amount-${cost.id}`}
                             />
+                          </td>
+                          <td className="border border-gray-200 dark:border-gray-700 p-1">
+                            <Select
+                              value={cost.startMonth?.toString() || "1"}
+                              onValueChange={(value) => {
+                                const updatedCosts = data.oneTimeCosts.map(c => 
+                                  c.id === cost.id ? { ...c, startMonth: Number(value) } : c
+                                );
+                                onChange({ ...data, oneTimeCosts: updatedCosts });
+                              }}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="P1" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => (
+                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                    P{i + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="border border-gray-200 dark:border-gray-700 p-1">
+                            <Select
+                              value={cost.endMonth?.toString() || "1"}
+                              onValueChange={(value) => {
+                                const updatedCosts = data.oneTimeCosts.map(c => 
+                                  c.id === cost.id ? { ...c, endMonth: Number(value) } : c
+                                );
+                                onChange({ ...data, oneTimeCosts: updatedCosts });
+                              }}
+                            >
+                              <SelectTrigger className="h-8">
+                                <SelectValue placeholder="P1" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => (
+                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                    P{i + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </td>
                         </tr>
                       );
@@ -844,7 +910,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           >
                             {expandedCategories.capex ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                           </button>
-                          Capex (Amortized)
+                          Capex (Cash Flow)
                         </div>
                       </td>
                       {calculateAmortizedCapex().map((amount, monthIndex) => (
@@ -859,13 +925,16 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     {expandedCategories.capex && data.oneTimeCosts.map((cost) => (
                       <tr key={cost.id} className="bg-green-50 dark:bg-green-950/20">
                         <td className="border border-gray-200 dark:border-gray-700 p-2 pl-8 text-sm text-gray-600 dark:text-gray-400">
-                          {cost.name} (amortized over 36 months)
+                          {cost.name} (P{cost.startMonth || 1}-P{cost.endMonth || 1})
                         </td>
-                        {calculateAmortizedCapex().map((_, monthIndex) => {
-                          const amortizedAmount = cost.amount / 36;
+                        {Array.from({ length: 12 }, (_, monthIndex) => {
+                          const startMonth = (cost.startMonth || 1) - 1;
+                          const endMonth = (cost.endMonth || 1) - 1;
+                          const numMonths = Math.max(1, endMonth - startMonth + 1);
+                          const monthlyAmount = (monthIndex >= startMonth && monthIndex <= endMonth) ? cost.amount / numMonths : 0;
                           return (
                             <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
-                              {amortizedAmount.toFixed(1)}
+                              {monthlyAmount.toFixed(1)}
                             </td>
                           );
                         })}
