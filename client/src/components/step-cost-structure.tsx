@@ -101,8 +101,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     // Get product-specific cost suggestions
     const suggestions = getCostSuggestions(data.productCategory);
 
-    // Create base fixed costs with employee calculations
-    const baseFixedCosts: CostItem[] = [
+    // Create system-calculated fixed costs (employee costs and corporate overheads)
+    const systemFixedCosts: CostItem[] = [
       {
         id: 'team-members',
         name: 'Team Members',
@@ -120,41 +120,46 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         unit: `${employeeInputs.augmentedResources} resources @ 240k/year = ${(employeeInputs.augmentedResources * 240).toFixed(0)}k annually`
       },
       {
-        id: 'maintenance',
-        name: 'Maintenance',
-        monthlyAmounts: Array(12).fill(maintenanceCost),
-        icon: 'cog',
-        isCommon: true,
-        unit: 'monthly'
-      },
-      {
         id: 'corporate-overheads',
         name: 'Corporate Overheads',
         monthlyAmounts: calculateCorporateOverheads(),
         icon: 'building',
         isCommon: true,
-        unit: `${corporateOverheadRate}% of total costs`
+        unit: `${corporateOverheadRate}% of total costs (includes software licenses, office rental, legal compliance)`
       }
     ];
 
-    // Merge user's custom costs with base costs and product suggestions
+    // Keep only user's custom costs (not common/system costs)
     const existingCustomFixed = data.fixedCosts.filter(cost => !cost.isCommon);
+    const existingCustomVariable = data.variableCosts.filter(cost => !cost.isCommon);
+    const existingCustomOneTime = data.oneTimeCosts.filter(cost => !cost.isCommon);
+
+    // Rebuild costs from scratch to avoid duplicates
     const updatedFixedCosts = [
-      ...baseFixedCosts,
-      ...suggestions.fixedCosts.map(cost => ({ ...cost, monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000) })), // Convert to thousands
+      ...systemFixedCosts,
+      ...suggestions.fixedCosts.map(cost => ({ 
+        ...cost, 
+        monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
+        isCommon: true // Mark as common to prevent duplication
+      })),
       ...existingCustomFixed
     ];
 
-    const existingCustomVariable = data.variableCosts.filter(cost => !cost.isCommon);
     const updatedVariableCosts = [
-      ...suggestions.variableCosts.map(cost => ({ ...cost, monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000) })), // Convert to thousands
+      ...suggestions.variableCosts.map(cost => ({ 
+        ...cost, 
+        monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
+        isCommon: true // Mark as common to prevent duplication
+      })),
       ...existingCustomVariable
     ];
 
-    // Merge user's custom one-time costs with product suggestions
-    const existingCustomOneTime = data.oneTimeCosts.filter(cost => !cost.isCommon);
     const updatedOneTimeCosts = [
-      ...suggestions.oneTimeCosts.map(cost => ({ ...cost, amount: cost.amount / 1000 })), // Convert to thousands
+      ...suggestions.oneTimeCosts.map(cost => ({ 
+        ...cost, 
+        amount: cost.amount / 1000,
+        isCommon: true // Mark as common to prevent duplication
+      })),
       ...existingCustomOneTime
     ];
 

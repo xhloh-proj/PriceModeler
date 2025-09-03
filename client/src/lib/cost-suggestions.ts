@@ -21,75 +21,17 @@ export interface CostSuggestions {
   oneTimeCosts: OneTimeCostItem[];
 }
 
-const commonFixedCosts: CostItem[] = [
-  {
-    id: "staff-dev",
-    name: "Staff costs (development team salaries)",
-    monthlyAmounts: [50000, 50000, 50000, 55000, 55000, 55000, 60000, 60000, 60000, 65000, 65000, 65000],
-    icon: "users",
-    isCommon: true
-  },
-  {
-    id: "software-licenses",
-    name: "Software licences (basic development tools)",
-    monthlyAmounts: [2000, 2000, 2000, 2000, 2000, 2000, 2500, 2500, 2500, 2500, 2500, 2500],
-    icon: "key",
-    isCommon: true
-  },
-  {
-    id: "office-rental",
-    name: "Office rental and utilities",
-    monthlyAmounts: [8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000],
-    icon: "building",
-    isCommon: true
-  },
-  {
-    id: "legal-compliance",
-    name: "Legal and compliance baseline",
-    monthlyAmounts: [3000, 3000, 3000, 3000, 3000, 3000, 3500, 3500, 3500, 3500, 3500, 3500],
-    icon: "briefcase",
-    isCommon: true
-  },
-  {
-    id: "project-management",
-    name: "Project management overhead",
-    monthlyAmounts: [5000, 5000, 5000, 5500, 5500, 5500, 6000, 6000, 6000, 6500, 6500, 6500],
-    icon: "clipboard",
-    isCommon: true
-  }
-];
+// Fixed costs are now minimal - software licenses, office rental, legal compliance moved to Corporate Overheads
+const commonFixedCosts: CostItem[] = [];
 
+// Variable costs that are common to all product categories
 const commonVariableCosts: CostItem[] = [
   {
     id: "cloud-hosting",
-    name: "Cloud hosting (compute/storage scaling)",
+    name: "Cloud hosting",
     monthlyAmounts: [500, 600, 700, 800, 1000, 1200, 1500, 1800, 2200, 2600, 3100, 3600],
     icon: "cloud",
-    unit: "scaling with usage",
-    isCommon: true
-  },
-  {
-    id: "api-usage",
-    name: "Third-party API usage fees",
-    monthlyAmounts: [200, 250, 300, 350, 450, 550, 700, 850, 1050, 1250, 1500, 1750],
-    icon: "link",
-    unit: "per API call",
-    isCommon: true
-  },
-  {
-    id: "customer-support",
-    name: "Customer support scaling",
-    monthlyAmounts: [1000, 1200, 1400, 1600, 2000, 2400, 3000, 3600, 4400, 5200, 6200, 7200],
-    icon: "headphones",
-    unit: "per user tier",
-    isCommon: true
-  },
-  {
-    id: "security-monitoring",
-    name: "Security monitoring per user/transaction",
-    monthlyAmounts: [300, 360, 420, 480, 600, 720, 900, 1080, 1320, 1560, 1860, 2160],
-    icon: "shield",
-    unit: "per user/transaction",
+    unit: "compute/storage scaling",
     isCommon: true
   }
 ];
@@ -125,21 +67,23 @@ const commonOneTimeCosts: OneTimeCostItem[] = [
   }
 ];
 
-// Infrastructure Products
+// Infrastructure Products - unique costs for data centers and hardware
 const infrastructureUniqueFixedCosts: CostItem[] = [
   {
-    id: "plant-equipment",
-    name: "Maintenance of Plant & Equipment",
+    id: "plant-equipment-maintenance",
+    name: "Plant & Equipment Maintenance",
     monthlyAmounts: [15000, 15000, 15000, 15000, 15000, 15000, 16000, 16000, 16000, 16000, 16000, 16000],
     icon: "cog",
-    isCommon: false
+    isCommon: false,
+    unit: "monthly"
   },
   {
-    id: "utilities-power",
+    id: "utilities-power-cooling",
     name: "Utilities (power/cooling)",
     monthlyAmounts: [5000, 5000, 5000, 5500, 5500, 5500, 6000, 6000, 6000, 6500, 6500, 6500],
     icon: "zap",
-    isCommon: false
+    isCommon: false,
+    unit: "monthly"
   }
 ];
 
@@ -158,6 +102,14 @@ const infrastructureUniqueVariableCosts: CostItem[] = [
     monthlyAmounts: [800, 960, 1120, 1280, 1600, 1920, 2400, 2880, 3520, 4160, 4960, 5760],
     icon: "globe",
     unit: "per replication",
+    isCommon: false
+  },
+  {
+    id: "hardware-scaling",
+    name: "Hardware scaling costs",
+    monthlyAmounts: [1200, 1440, 1680, 1920, 2400, 2880, 3600, 4320, 5280, 6240, 7440, 8640],
+    icon: "server",
+    unit: "per server instance",
     isCommon: false
   }
 ];
@@ -193,28 +145,22 @@ const infrastructureUniqueOneTimeCosts: OneTimeCostItem[] = [
   }
 ];
 
-// Platform Products
+// Platform Products - unique costs for API platforms and developer tools
 const platformUniqueFixedCosts: CostItem[] = [
   {
-    id: "api-gateway",
-    name: "API gateway tools",
-    monthlyAmounts: [3000, 3000, 3000, 3000, 3000, 3000, 3500, 3500, 3500, 3500, 3500, 3500],
-    icon: "layers",
-    isCommon: false
-  },
-  {
-    id: "dev-portal",
+    id: "dev-portal-maintenance",
     name: "Developer portal maintenance",
     monthlyAmounts: [2000, 2000, 2000, 2200, 2200, 2200, 2500, 2500, 2500, 2800, 2800, 2800],
     icon: "code",
-    isCommon: false
+    isCommon: false,
+    unit: "monthly"
   }
 ];
 
 const platformUniqueVariableCosts: CostItem[] = [
   {
     id: "dev-onboarding",
-    name: "Developer onboarding costs",
+    name: "Developer onboarding",
     monthlyAmounts: [500, 600, 700, 800, 1000, 1200, 1500, 1800, 2200, 2600, 3100, 3600],
     icon: "user-plus",
     unit: "per developer",
@@ -222,7 +168,7 @@ const platformUniqueVariableCosts: CostItem[] = [
   },
   {
     id: "multitenant-resources",
-    name: "Multi-tenant resource allocation",
+    name: "Multi-tenant resources",
     monthlyAmounts: [1200, 1440, 1680, 1920, 2400, 2880, 3600, 4320, 5280, 6240, 7440, 8640],
     icon: "database",
     unit: "per tenant",
@@ -247,7 +193,7 @@ const platformUniqueVariableCosts: CostItem[] = [
   {
     id: "penetration-testing",
     name: "Penetration testing",
-    monthlyAmounts: [10, 12, 14, 16, 20, 24, 30, 36, 44, 52, 62, 72],
+    monthlyAmounts: [1000, 1000, 1000, 1200, 1200, 1200, 1500, 1500, 1500, 1800, 1800, 1800],
     icon: "shield",
     unit: "quarterly testing",
     isCommon: false
@@ -271,33 +217,27 @@ const platformUniqueOneTimeCosts: OneTimeCostItem[] = [
   }
 ];
 
-// Application Products
+// Application Products - unique costs for mobile/web app development
 const applicationUniqueFixedCosts: CostItem[] = [
   {
     id: "ui-ux-teams",
     name: "UI/UX design teams",
     monthlyAmounts: [8000, 8000, 8000, 8500, 8500, 8500, 9000, 9000, 9000, 9500, 9500, 9500],
     icon: "palette",
-    isCommon: false
+    isCommon: false,
+    unit: "monthly"
   },
   {
     id: "app-store-registration",
     name: "App store registrations",
     monthlyAmounts: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
     icon: "smartphone",
-    isCommon: false
+    isCommon: false,
+    unit: "monthly"
   }
 ];
 
 const applicationUniqueVariableCosts: CostItem[] = [
-  {
-    id: "push-notifications",
-    name: "Push notifications",
-    monthlyAmounts: [200, 240, 280, 320, 400, 480, 600, 720, 880, 1040, 1240, 1440],
-    icon: "bell",
-    unit: "per notification sent",
-    isCommon: false
-  },
   {
     id: "push-notifications-postman",
     name: "Push notifications/Postman",
@@ -323,9 +263,9 @@ const applicationUniqueVariableCosts: CostItem[] = [
     isCommon: false
   },
   {
-    id: "penetration-testing",
-    name: "Penetration testing",
-    monthlyAmounts: [10, 12, 14, 16, 20, 24, 30, 36, 44, 52, 62, 72],
+    id: "app-security-testing",
+    name: "App security testing",
+    monthlyAmounts: [1000, 1000, 1000, 1200, 1200, 1200, 1500, 1500, 1500, 1800, 1800, 1800],
     icon: "shield",
     unit: "quarterly testing",
     isCommon: false
