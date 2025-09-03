@@ -180,6 +180,36 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     }
   };
 
+  const handleCostNameChange = (costType: 'fixed' | 'variable', costId: string, newName: string) => {
+    const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+    const updatedCosts = costs.map(cost => {
+      if (cost.id === costId) {
+        return { ...cost, name: newName };
+      }
+      return cost;
+    });
+
+    if (costType === 'fixed') {
+      onChange({ ...data, fixedCosts: updatedCosts });
+    } else {
+      onChange({ ...data, variableCosts: updatedCosts });
+    }
+  };
+
+  const addFixedCost = () => {
+    const newCost: CostItem = {
+      id: `fixed-${Date.now()}`,
+      name: 'New Fixed Cost',
+      monthlyAmounts: Array(12).fill(0),
+      icon: 'building',
+      isCommon: false,
+    };
+    onChange({ 
+      ...data, 
+      fixedCosts: [...data.fixedCosts, newCost]
+    });
+  };
+
   const addVariableCost = () => {
     const newCost: CostItem = {
       id: `variable-${Date.now()}`,
@@ -278,10 +308,27 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   <td className="border border-gray-200 dark:border-gray-700 p-2">
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4" />
-                      <div>
-                        <div className="font-medium">{cost.name}</div>
-                        {cost.unit && (
-                          <div className="text-xs text-muted-foreground">{cost.unit}</div>
+                      <div className="flex-1">
+                        {cost.isCommon ? (
+                          <div>
+                            <div className="font-medium">{cost.name}</div>
+                            {cost.unit && (
+                              <div className="text-xs text-muted-foreground">{cost.unit}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <Input
+                              value={cost.name}
+                              onChange={(e) => handleCostNameChange(costType, cost.id, e.target.value)}
+                              className="border-0 font-medium bg-transparent p-0 h-auto focus-visible:ring-0"
+                              data-testid={`input-cost-name-${cost.id}`}
+                              placeholder="Enter cost name"
+                            />
+                            {cost.unit && (
+                              <div className="text-xs text-muted-foreground">{cost.unit}</div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -310,11 +357,18 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         </table>
       </div>
       
-      {costType === 'variable' && (
-        <Button onClick={addVariableCost} variant="outline" data-testid="button-add-variable-cost">
-          Add Variable Cost
-        </Button>
-      )}
+      <div className="flex gap-2">
+        {costType === 'fixed' && (
+          <Button onClick={addFixedCost} variant="outline" data-testid="button-add-fixed-cost">
+            Add Fixed Cost
+          </Button>
+        )}
+        {costType === 'variable' && (
+          <Button onClick={addVariableCost} variant="outline" data-testid="button-add-variable-cost">
+            Add Variable Cost
+          </Button>
+        )}
+      </div>
     </div>
   );
 
