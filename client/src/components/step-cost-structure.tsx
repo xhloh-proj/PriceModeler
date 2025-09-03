@@ -664,7 +664,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <TabsContent value="total" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-purple-900">Total Cost Summary (thousands)</CardTitle>
+              <CardTitle className="text-purple-900">Total Cost Summary ($'000s)</CardTitle>
               <CardDescription>
                 Complete overview of all costs with Capex amortized over 36 months.
               </CardDescription>
@@ -680,7 +680,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           {month}
                         </th>
                       ))}
-                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total Year 1 (k)</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total Year 1 ($'000s)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -838,6 +838,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
               {/* Multi-Year Projection Table */}
               <div className="mt-6 space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">5-Year Financial Projection</h3>
+                
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Label htmlFor="inflation-rate" className="text-sm font-medium">Inflation Rate:</Label>
@@ -868,26 +870,48 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-800">
-                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Year</th>
-                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Annual Total (k)</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Year 1</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Year 2</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Year 3</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Year 4</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Year 5</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'].map((year, index) => (
-                        <tr key={year}>
-                          <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium">
-                            {year}
-                          </td>
-                          <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                            {index === 0 
-                              ? calculateYear1Total().toFixed(1)
-                              : yearlyData[index] 
-                                ? yearlyData[index].toFixed(1) 
-                                : '-'
-                            }
-                          </td>
-                        </tr>
-                      ))}
+                      <tr>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                          {calculateYear1Total().toFixed(1)}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          {yearlyData[1] ? yearlyData[1].toFixed(1) : '-'}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          {yearlyData[2] ? yearlyData[2].toFixed(1) : '-'}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          {yearlyData[3] ? yearlyData[3].toFixed(1) : '-'}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          {yearlyData[4] ? yearlyData[4].toFixed(1) : '-'}
+                        </td>
+                      </tr>
+                      <tr className="text-sm text-gray-600 dark:text-gray-400">
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          $'000s
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          $'000s
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          $'000s
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          $'000s
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          $'000s
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
