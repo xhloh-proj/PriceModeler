@@ -20,6 +20,7 @@ interface OneTimeCostItem {
   amount: number;
   icon: string;
   isCommon: boolean;
+  month?: number;
 }
 
 interface SummaryData {
@@ -92,9 +93,45 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
     };
   };
 
+  // Calculate depreciation for a specific year based on when capex was incurred
+  const calculateDepreciationForYear = (year: number) => {
+    let totalDepreciation = 0;
+    
+    data.oneTimeCosts.forEach(cost => {
+      const incurredMonth = cost.month || 1; // Month when capex was incurred (1-12)
+      const incurredYear = 1; // All capex in year 1 for now
+      const monthlyDepreciation = cost.amount / 36; // Depreciate over 36 months
+      
+      // Calculate which months of this year should have depreciation
+      const startYear = incurredYear;
+      const startMonth = incurredMonth;
+      
+      // Calculate the absolute month when depreciation starts (1-based)
+      const depreciationStartMonth = (startYear - 1) * 12 + startMonth;
+      
+      // Calculate the absolute month range for this year
+      const yearStartMonth = (year - 1) * 12 + 1;
+      const yearEndMonth = year * 12;
+      
+      // Calculate the absolute month when depreciation ends (36 months after start)
+      const depreciationEndMonth = depreciationStartMonth + 35; // 36 months total
+      
+      // Find overlap between this year and the depreciation period
+      const overlapStart = Math.max(yearStartMonth, depreciationStartMonth);
+      const overlapEnd = Math.min(yearEndMonth, depreciationEndMonth);
+      
+      if (overlapStart <= overlapEnd) {
+        const monthsInThisYear = overlapEnd - overlapStart + 1;
+        totalDepreciation += monthlyDepreciation * monthsInThisYear;
+      }
+    });
+    
+    return totalDepreciation;
+  };
+
   // Generate P&L data for 5 years
   const generatePnLData = () => {
-    const { fixedCostPerYear, variableCostPerYear, oneTimeCosts } = calculateTotalCosts();
+    const { fixedCostPerYear, variableCostPerYear } = calculateTotalCosts();
     const pricing = calculatePricingRecommendations();
     const priceToUse = selectedPrice > 0 ? selectedPrice : pricing.target;
     
@@ -104,7 +141,7 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
       const revenue = demandThisYear * priceToUse;
       const fixedCosts = fixedCostPerYear;
       const variableCosts = variableCostPerYear;
-      const depreciation = year <= 3 ? Math.round(oneTimeCosts / 3) : 0; // Depreciate capex over 3 years
+      const depreciation = calculateDepreciationForYear(year);
       const grossProfit = revenue - fixedCosts - variableCosts - depreciation;
       const profitMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
       
