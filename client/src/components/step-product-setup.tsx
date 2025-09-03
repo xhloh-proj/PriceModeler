@@ -65,7 +65,7 @@ export default function StepProductSetup({ data, onChange, onNext }: StepProduct
                   <SelectContent>
                     <SelectItem value="infrastructure">Infrastructure Products</SelectItem>
                     <SelectItem value="platform">Platform Products</SelectItem>
-                    <SelectItem value="applications">Citizen/Employee Applications</SelectItem>
+                    <SelectItem value="applications">Applications</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

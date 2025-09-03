@@ -176,6 +176,20 @@ const infrastructureUniqueOneTimeCosts: OneTimeCostItem[] = [
     amount: 30000,
     icon: "life-buoy",
     isCommon: false
+  },
+  {
+    id: "onprem-servers",
+    name: "On-prem servers and networking",
+    amount: 75000,
+    icon: "server",
+    isCommon: false
+  },
+  {
+    id: "vendor-setup",
+    name: "Vendor set up costs",
+    amount: 20000,
+    icon: "building",
+    isCommon: false
   }
 ];
 
@@ -212,6 +226,14 @@ const platformUniqueVariableCosts: CostItem[] = [
     monthlyAmounts: [1200, 1440, 1680, 1920, 2400, 2880, 3600, 4320, 5280, 6240, 7440, 8640],
     icon: "database",
     unit: "per tenant",
+    isCommon: false
+  },
+  {
+    id: "penetration-testing",
+    name: "Penetration testing",
+    monthlyAmounts: [10, 12, 14, 16, 20, 24, 30, 36, 44, 52, 62, 72],
+    icon: "shield",
+    unit: "quarterly testing",
     isCommon: false
   }
 ];
@@ -274,6 +296,14 @@ const applicationUniqueVariableCosts: CostItem[] = [
     monthlyAmounts: [400, 480, 560, 640, 800, 960, 1200, 1440, 1760, 2080, 2480, 2880],
     icon: "bar-chart",
     unit: "per active user",
+    isCommon: false
+  },
+  {
+    id: "penetration-testing",
+    name: "Penetration testing",
+    monthlyAmounts: [10, 12, 14, 16, 20, 24, 30, 36, 44, 52, 62, 72],
+    icon: "shield",
+    unit: "quarterly testing",
     isCommon: false
   }
 ];

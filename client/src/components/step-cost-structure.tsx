@@ -54,10 +54,11 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   const [maintenanceCost, setMaintenanceCost] = useState(50);
   const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
 
-  // Calculate employee costs in thousands (250k per person = 250)
+  // Calculate employee costs in thousands (250k per person annually)
   const calculateEmployeeCosts = (count: number) => {
-    const monthlyPerEmployee = 250 / 12; // ~20.83k per month per employee
-    return Array(12).fill(Number((count * monthlyPerEmployee).toFixed(1)));
+    const totalAnnual = count * 250; // Total annual cost in thousands
+    const monthlyTotal = totalAnnual / 12; // Monthly total in thousands
+    return Array(12).fill(Number(monthlyTotal.toFixed(1)));
   };
 
   // Calculate total costs for corporate overhead calculation
@@ -95,7 +96,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
         icon: 'users',
         isCommon: true,
-        unit: `${employeeInputs.teamMembers} employees @ 250k/year each`
+        unit: `${employeeInputs.teamMembers} employees @ 250k/year = ${(employeeInputs.teamMembers * 250).toFixed(0)}k annually`
       },
       {
         id: 'augmented-resources',
@@ -103,7 +104,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
         icon: 'user-plus',
         isCommon: true,
-        unit: `${employeeInputs.augmentedResources} resources @ 250k/year each`
+        unit: `${employeeInputs.augmentedResources} resources @ 250k/year = ${(employeeInputs.augmentedResources * 250).toFixed(0)}k annually`
       },
       {
         id: 'maintenance',
@@ -381,59 +382,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         </p>
       </div>
 
-      {/* Employee Inputs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Team Configuration</CardTitle>
-          <CardDescription>
-            Simplified employee inputs - costs are auto-calculated at $250k/year per person
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="team-members">Number of Team Members</Label>
-              <Input
-                id="team-members"
-                type="number"
-                value={employeeInputs.teamMembers}
-                onChange={(e) => handleEmployeeInputChange('teamMembers', Number(e.target.value))}
-                data-testid="input-team-members"
-              />
-            </div>
-            <div>
-              <Label htmlFor="augmented-resources">Number of Augmented Resources</Label>
-              <Input
-                id="augmented-resources"
-                type="number"
-                value={employeeInputs.augmentedResources}
-                onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
-                data-testid="input-augmented-resources"
-              />
-            </div>
-            <div>
-              <Label htmlFor="maintenance-cost">Monthly Maintenance (thousands)</Label>
-              <Input
-                id="maintenance-cost"
-                type="number"
-                value={maintenanceCost}
-                onChange={(e) => setMaintenanceCost(Number(e.target.value))}
-                data-testid="input-maintenance-cost"
-              />
-            </div>
-            <div>
-              <Label htmlFor="corporate-overhead-rate">Corporate Overhead Rate (%)</Label>
-              <Input
-                id="corporate-overhead-rate"
-                type="number"
-                value={corporateOverheadRate}
-                onChange={(e) => setCorporateOverheadRate(Number(e.target.value))}
-                data-testid="input-corporate-overhead-rate"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <Tabs defaultValue="fixed" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -444,11 +392,65 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
             Variable Costs
           </TabsTrigger>
           <TabsTrigger value="onetime" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
-            One-time Costs
+            Capex
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="fixed" className="space-y-4">
+          {/* Team Configuration - Only for Fixed Costs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Configuration</CardTitle>
+              <CardDescription>
+                Simplified employee inputs - costs are auto-calculated at $250k/year per person
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="team-members">Number of Team Members</Label>
+                  <Input
+                    id="team-members"
+                    type="number"
+                    value={employeeInputs.teamMembers}
+                    onChange={(e) => handleEmployeeInputChange('teamMembers', Number(e.target.value))}
+                    data-testid="input-team-members"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="augmented-resources">Number of Augmented Resources</Label>
+                  <Input
+                    id="augmented-resources"
+                    type="number"
+                    value={employeeInputs.augmentedResources}
+                    onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
+                    data-testid="input-augmented-resources"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="maintenance-cost">Monthly Maintenance (thousands)</Label>
+                  <Input
+                    id="maintenance-cost"
+                    type="number"
+                    value={maintenanceCost}
+                    onChange={(e) => setMaintenanceCost(Number(e.target.value))}
+                    data-testid="input-maintenance-cost"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="corporate-overhead-rate">Corporate Overhead Rate (%)</Label>
+                  <Input
+                    id="corporate-overhead-rate"
+                    type="number"
+                    value={corporateOverheadRate}
+                    onChange={(e) => setCorporateOverheadRate(Number(e.target.value))}
+                    data-testid="input-corporate-overhead-rate"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-blue-900">Fixed Costs (thousands)</CardTitle>
@@ -479,9 +481,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <TabsContent value="onetime" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-green-900">One-time Costs (thousands)</CardTitle>
+              <CardTitle className="text-green-900">Capex (thousands)</CardTitle>
               <CardDescription>
-                Initial setup costs, licenses, and other one-off expenses.
+                Capital expenditures, initial setup costs, and one-off investments.
               </CardDescription>
             </CardHeader>
             <CardContent>
