@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ArrowLeft, ChevronDown, ChevronRight, TrendingUp, DollarSign, Target, Users, BarChart3, PieChart } from "lucide-react";
 import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, ComposedChart, Line, Legend } from "recharts";
 
 interface CostItem {
   id: string;
@@ -50,6 +50,8 @@ interface StepSummaryProps {
 
 export default function StepSummary({ data, onPrevious, onSave, onExport }: StepSummaryProps) {
   const [pnlExpanded, setPnlExpanded] = useState(false);
+  const [fixedCostExpanded, setFixedCostExpanded] = useState(false);
+  const [variableCostExpanded, setVariableCostExpanded] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState<number>(0);
 
   // Calculate total costs over 5 years
@@ -103,7 +105,7 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
       const revenue = demandThisYear * priceToUse;
       const fixedCosts = fixedCostPerYear;
       const variableCosts = variableCostPerYear;
-      const depreciation = year === 1 ? oneTimeCosts : 0; // Depreciate capex in year 1
+      const depreciation = year <= 3 ? Math.round(oneTimeCosts / 3) : 0; // Depreciate capex over 3 years
       const grossProfit = revenue - fixedCosts - variableCosts - depreciation;
       const profitMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
       
@@ -126,7 +128,9 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
     const revenueData = pnlData.map(item => ({
       year: item.year,
       Revenue: item.revenue,
-      'Total Costs': item.fixedCosts + item.variableCosts + item.depreciation,
+      'Fixed Costs': -(item.fixedCosts),
+      'Variable Costs': -(item.variableCosts),
+      'Depreciation': -(item.depreciation),
       Profit: item.grossProfit
     }));
 
@@ -216,15 +220,18 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={revenueData}>
+                <ComposedChart data={revenueData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" />
                   <YAxis />
-                  <Tooltip formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
-                  <Bar dataKey="Revenue" fill="#3b82f6" />
-                  <Bar dataKey="Total Costs" fill="#ef4444" />
-                  <Bar dataKey="Profit" fill="#10b981" />
-                </BarChart>
+                  <Tooltip formatter={(value: number) => [`$${Math.abs(value).toLocaleString()}`, '']} />
+                  <Legend />
+                  <Bar dataKey="Revenue" fill="#3b82f6" name="Revenue" />
+                  <Bar dataKey="Fixed Costs" fill="#ef4444" name="Fixed Costs" />
+                  <Bar dataKey="Variable Costs" fill="#f59e0b" name="Variable Costs" />
+                  <Bar dataKey="Depreciation" fill="#8b5cf6" name="Depreciation" />
+                  <Line type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={3} name="Profit" />
+                </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -343,7 +350,12 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
                       </tr>
                       
                       <tr>
-                        <td className="border border-gray-200 dark:border-gray-700 p-3 pl-6 text-blue-600">Less: Fixed Costs</td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-3 pl-6 text-blue-600 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={() => setFixedCostExpanded(!fixedCostExpanded)}>
+                          <div className="flex items-center gap-2">
+                            Less: Fixed Costs
+                            {fixedCostExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </div>
+                        </td>
                         {pnlData.map((yearData, index) => (
                           <td key={index} className="border border-gray-200 dark:border-gray-700 p-3 text-center text-blue-600">
                             (${yearData.fixedCosts.toLocaleString()})
@@ -353,9 +365,33 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
                           (${pnlData.reduce((sum, year) => sum + year.fixedCosts, 0).toLocaleString()})
                         </td>
                       </tr>
+                      {fixedCostExpanded && (
+                        <>
+                          {data.fixedCosts.map((cost) => (
+                            <tr key={cost.id} className="bg-blue-50 dark:bg-blue-900/10">
+                              <td className="border border-gray-200 dark:border-gray-700 p-3 pl-12 text-sm text-blue-500">
+                                • {cost.name}
+                              </td>
+                              {Array.from({ length: 5 }, (_, year) => (
+                                <td key={year} className="border border-gray-200 dark:border-gray-700 p-3 text-center text-sm text-blue-500">
+                                  (${Math.round(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0)).toLocaleString()})
+                                </td>
+                              ))}
+                              <td className="border border-gray-200 dark:border-gray-700 p-3 text-center text-sm text-blue-500">
+                                (${Math.round(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0) * 5).toLocaleString()})
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
                       
                       <tr>
-                        <td className="border border-gray-200 dark:border-gray-700 p-3 pl-6 text-orange-600">Less: Variable Costs</td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-3 pl-6 text-orange-600 cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20" onClick={() => setVariableCostExpanded(!variableCostExpanded)}>
+                          <div className="flex items-center gap-2">
+                            Less: Variable Costs
+                            {variableCostExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </div>
+                        </td>
                         {pnlData.map((yearData, index) => (
                           <td key={index} className="border border-gray-200 dark:border-gray-700 p-3 text-center text-orange-600">
                             (${yearData.variableCosts.toLocaleString()})
@@ -365,6 +401,25 @@ export default function StepSummary({ data, onPrevious, onSave, onExport }: Step
                           (${pnlData.reduce((sum, year) => sum + year.variableCosts, 0).toLocaleString()})
                         </td>
                       </tr>
+                      {variableCostExpanded && (
+                        <>
+                          {data.variableCosts.map((cost) => (
+                            <tr key={cost.id} className="bg-orange-50 dark:bg-orange-900/10">
+                              <td className="border border-gray-200 dark:border-gray-700 p-3 pl-12 text-sm text-orange-500">
+                                • {cost.name}
+                              </td>
+                              {Array.from({ length: 5 }, (_, year) => (
+                                <td key={year} className="border border-gray-200 dark:border-gray-700 p-3 text-center text-sm text-orange-500">
+                                  (${Math.round(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0)).toLocaleString()})
+                                </td>
+                              ))}
+                              <td className="border border-gray-200 dark:border-gray-700 p-3 text-center text-sm text-orange-500">
+                                (${Math.round(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0) * 5).toLocaleString()})
+                              </td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
                       
                       <tr>
                         <td className="border border-gray-200 dark:border-gray-700 p-3 pl-6 text-purple-600">Less: Depreciation</td>

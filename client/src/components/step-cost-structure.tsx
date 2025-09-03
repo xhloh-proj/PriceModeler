@@ -105,7 +105,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     const systemFixedCosts: CostItem[] = [
       {
         id: 'team-members',
-        name: 'Team Members',
+        name: 'Expenditure on Manpower',
         monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
         icon: 'users',
         isCommon: true,
