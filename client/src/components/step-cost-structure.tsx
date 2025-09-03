@@ -1,11 +1,10 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ArrowRight, Anchor, TrendingUp, Calendar, Server, Key, Shield, Briefcase, Users, CreditCard, Megaphone, Cloud, Building, Clipboard, Cog, Zap, Wifi, Globe, LifeBuoy, Layers, Code, UserPlus, Database, Package, GitBranch, Palette, Smartphone, Bell, BarChart, ShieldCheck, Rocket, Book, Link, Headphones, FileText } from "lucide-react";
-import { getCostSuggestions, type CostSuggestions } from "@/lib/cost-suggestions";
-import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface CostItem {
   id: string;
@@ -32,6 +31,11 @@ interface CostStructureData {
   productCategory: string;
 }
 
+interface EmployeeInputs {
+  teamMembers: number;
+  augmentedResources: number;
+}
+
 interface StepCostStructureProps {
   data: CostStructureData;
   onChange: (data: CostStructureData) => void;
@@ -39,381 +43,422 @@ interface StepCostStructureProps {
   onPrevious: () => void;
 }
 
-const getIcon = (iconName: string) => {
-  const icons = {
-    server: Server,
-    key: Key,
-    shield: Shield,
-    briefcase: Briefcase,
-    users: Users,
-    "credit-card": CreditCard,
-    megaphone: Megaphone,
-    cloud: Cloud,
-    building: Building,
-    clipboard: Clipboard,
-    cog: Cog,
-    zap: Zap,
-    wifi: Wifi,
-    globe: Globe,
-    "life-buoy": LifeBuoy,
-    layers: Layers,
-    code: Code,
-    "user-plus": UserPlus,
-    database: Database,
-    package: Package,
-    "git-branch": GitBranch,
-    palette: Palette,
-    smartphone: Smartphone,
-    bell: Bell,
-    "bar-chart": BarChart,
-    blueprint: FileText,
-    "shield-check": ShieldCheck,
-    rocket: Rocket,
-    book: Book,
-    link: Link,
-    headphones: Headphones,
-    accessibility: FileText,
-  };
-  return icons[iconName as keyof typeof icons] || Server;
-};
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function StepCostStructure({ data, onChange, onNext, onPrevious }: StepCostStructureProps) {
-  const [suggestions, setSuggestions] = useState<CostSuggestions | null>(null);
+  const [employeeInputs, setEmployeeInputs] = useState<EmployeeInputs>({
+    teamMembers: 5,
+    augmentedResources: 2,
+  });
   
-  // Initialize suggestions based on product category
+  const [maintenanceCost, setMaintenanceCost] = useState(50);
+  const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
+
+  // Calculate employee costs in thousands (250k per person = 250)
+  const calculateEmployeeCosts = (count: number) => {
+    const monthlyPerEmployee = 250 / 12; // ~20.83k per month per employee
+    return Array(12).fill(Number((count * monthlyPerEmployee).toFixed(1)));
+  };
+
+  // Calculate total costs for corporate overhead calculation
+  const calculateTotalCosts = () => {
+    const totalFixed = data.fixedCosts.reduce((sum, cost) => 
+      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const totalVariable = data.variableCosts.reduce((sum, cost) => 
+      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const totalOneTime = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+    
+    return totalFixed + totalVariable + totalOneTime;
+  };
+
+  // Calculate corporate overheads
+  const calculateCorporateOverheads = () => {
+    const totalCosts = calculateTotalCosts();
+    const monthlyOverhead = (totalCosts * (corporateOverheadRate / 100)) / 12;
+    return Array(12).fill(Number(monthlyOverhead.toFixed(1)));
+  };
+
+  // Update costs when employee inputs change
   useEffect(() => {
-    if (data.productCategory) {
-      const costSuggestions = getCostSuggestions(data.productCategory);
-      setSuggestions(costSuggestions);
-      
-      // Initialize with suggestions if data is empty
-      if (data.fixedCosts.length === 0 && data.variableCosts.length === 0 && data.oneTimeCosts.length === 0) {
-        onChange({
-          ...data,
-          fixedCosts: costSuggestions.fixedCosts,
-          variableCosts: costSuggestions.variableCosts,
-          oneTimeCosts: costSuggestions.oneTimeCosts,
-          costIncreaseAssumptions: [
-            { year: 2, fixedIncrease: 5, variableIncrease: 3 },
-            { year: 3, fixedIncrease: 5, variableIncrease: 3 },
-            { year: 4, fixedIncrease: 5, variableIncrease: 3 },
-            { year: 5, fixedIncrease: 5, variableIncrease: 3 },
-          ]
-        });
+    const updatedFixedCosts: CostItem[] = [
+      {
+        id: 'team-members',
+        name: 'Team Members',
+        monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
+        icon: 'users',
+        isCommon: true,
+        unit: `${employeeInputs.teamMembers} employees @ 250k/year each`
+      },
+      {
+        id: 'augmented-resources',
+        name: 'Augmented Resources',
+        monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
+        icon: 'user-plus',
+        isCommon: true,
+        unit: `${employeeInputs.augmentedResources} resources @ 250k/year each`
+      },
+      {
+        id: 'maintenance',
+        name: 'Maintenance',
+        monthlyAmounts: Array(12).fill(maintenanceCost),
+        icon: 'cog',
+        isCommon: true,
+        unit: 'monthly'
+      },
+      {
+        id: 'corporate-overheads',
+        name: 'Corporate Overheads',
+        monthlyAmounts: calculateCorporateOverheads(),
+        icon: 'building',
+        isCommon: true,
+        unit: `${corporateOverheadRate}% of total costs`
+      }
+    ];
+
+    onChange({ 
+      ...data, 
+      fixedCosts: updatedFixedCosts,
+    });
+  }, [employeeInputs, maintenanceCost, corporateOverheadRate, data.variableCosts, data.oneTimeCosts]);
+
+  const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
+    setEmployeeInputs(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCostItemChange = (costType: 'fixed' | 'variable', costId: string, monthIndex: number, value: number) => {
+    const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+    const updatedCosts = costs.map(cost => {
+      if (cost.id === costId) {
+        const newAmounts = [...cost.monthlyAmounts];
+        newAmounts[monthIndex] = value;
+        return { ...cost, monthlyAmounts: newAmounts };
+      }
+      return cost;
+    });
+
+    if (costType === 'fixed') {
+      onChange({ ...data, fixedCosts: updatedCosts });
+    } else {
+      onChange({ ...data, variableCosts: updatedCosts });
+    }
+  };
+
+  const addVariableCost = () => {
+    const newCost: CostItem = {
+      id: `variable-${Date.now()}`,
+      name: 'New Variable Cost',
+      monthlyAmounts: Array(12).fill(0),
+      icon: 'cloud',
+      isCommon: false,
+    };
+    onChange({ 
+      ...data, 
+      variableCosts: [...data.variableCosts, newCost]
+    });
+  };
+
+  const getIcon = (iconName: string) => {
+    const icons = {
+      users: Users,
+      'user-plus': UserPlus,
+      cog: Cog,
+      building: Building,
+      cloud: Cloud,
+      database: Database,
+      shield: Shield,
+    };
+    return icons[iconName as keyof typeof icons] || Cloud;
+  };
+
+  const addOneTimeCost = () => {
+    const newCost: OneTimeCostItem = {
+      id: `onetime-${Date.now()}`,
+      name: 'New One-time Cost',
+      amount: 0,
+      icon: 'shield',
+      isCommon: false,
+    };
+    onChange({ 
+      ...data, 
+      oneTimeCosts: [...data.oneTimeCosts, newCost]
+    });
+  };
+
+  const handlePasteData = (costType: 'fixed' | 'variable', costId: string, event: React.ClipboardEvent) => {
+    event.preventDefault();
+    const pasteData = event.clipboardData.getData('text');
+    const values = pasteData.split(/[\t\n,]/).map(val => {
+      const num = parseFloat(val.trim());
+      return isNaN(num) ? 0 : num;
+    }).slice(0, 12); // Only take first 12 values
+
+    if (values.length > 0) {
+      const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+      const updatedCosts = costs.map(cost => {
+        if (cost.id === costId) {
+          const newAmounts = [...cost.monthlyAmounts];
+          values.forEach((value, index) => {
+            if (index < 12) newAmounts[index] = value;
+          });
+          return { ...cost, monthlyAmounts: newAmounts };
+        }
+        return cost;
+      });
+
+      if (costType === 'fixed') {
+        onChange({ ...data, fixedCosts: updatedCosts });
+      } else {
+        onChange({ ...data, variableCosts: updatedCosts });
       }
     }
-  }, [data.productCategory]);
-
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  const updateFixedCostMonth = (costIndex: number, monthIndex: number, amount: number) => {
-    const newFixedCosts = [...data.fixedCosts];
-    const newMonthlyAmounts = [...newFixedCosts[costIndex].monthlyAmounts];
-    newMonthlyAmounts[monthIndex] = amount;
-    newFixedCosts[costIndex] = { ...newFixedCosts[costIndex], monthlyAmounts: newMonthlyAmounts };
-    onChange({ ...data, fixedCosts: newFixedCosts });
   };
 
-  const updateVariableCostMonth = (costIndex: number, monthIndex: number, amount: number) => {
-    const newVariableCosts = [...data.variableCosts];
-    const newMonthlyAmounts = [...newVariableCosts[costIndex].monthlyAmounts];
-    newMonthlyAmounts[monthIndex] = amount;
-    newVariableCosts[costIndex] = { ...newVariableCosts[costIndex], monthlyAmounts: newMonthlyAmounts };
-    onChange({ ...data, variableCosts: newVariableCosts });
-  };
-
-  const updateOneTimeCost = (index: number, amount: number) => {
-    const newOneTimeCosts = [...data.oneTimeCosts];
-    newOneTimeCosts[index] = { ...newOneTimeCosts[index], amount };
-    onChange({ ...data, oneTimeCosts: newOneTimeCosts });
-  };
-
-  const updateCostIncreaseAssumption = (index: number, field: 'fixedIncrease' | 'variableIncrease', value: number) => {
-    const newAssumptions = [...data.costIncreaseAssumptions];
-    newAssumptions[index] = { ...newAssumptions[index], [field]: value };
-    onChange({ ...data, costIncreaseAssumptions: newAssumptions });
-  };
-
-  const getTotalFixedCosts = () => {
-    return data.fixedCosts.reduce((sum, cost) => 
-      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0
-    );
-  };
-
-  const getTotalVariableCosts = () => {
-    return data.variableCosts.reduce((sum, cost) => 
-      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0
-    );
-  };
-
-  const getTotalOneTimeCosts = () => {
-    return data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
-  };
-
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Build your cost structure</h2>
-        <p className="text-muted-foreground">
-          Based on your {data.productCategory} product, we've suggested typical cost elements. Customize month-by-month for Year 1.
-        </p>
+  const renderCostTable = (costs: CostItem[], costType: 'fixed' | 'variable') => (
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground mb-2">
+        💡 Tip: You can copy values from Excel and paste into any row to fill multiple months at once
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800">
+              <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
+              {months.map(month => (
+                <th key={month} className="border border-gray-200 dark:border-gray-700 p-2 text-center min-w-20">
+                  {month}
+                </th>
+              ))}
+              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total (k)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {costs.map((cost, costIndex) => {
+              const Icon = getIcon(cost.icon);
+              const total = cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0);
+              
+              return (
+                <tr key={cost.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="border border-gray-200 dark:border-gray-700 p-2">
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4" />
+                      <div>
+                        <div className="font-medium">{cost.name}</div>
+                        {cost.unit && (
+                          <div className="text-xs text-muted-foreground">{cost.unit}</div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  {cost.monthlyAmounts.map((amount, monthIndex) => (
+                    <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-1">
+                      <Input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => handleCostItemChange(costType, cost.id, monthIndex, Number(e.target.value))}
+                        onPaste={(e) => handlePasteData(costType, cost.id, e)}
+                        className="text-center h-8 text-sm"
+                        data-testid={`input-cost-${cost.id}-${monthIndex}`}
+                        disabled={cost.id === 'team-members' || cost.id === 'augmented-resources' || cost.id === 'corporate-overheads'}
+                        placeholder="0"
+                      />
+                    </td>
+                  ))}
+                  <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                    {total.toFixed(1)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       
-      <Tabs defaultValue="fixed" className="space-y-6">
+      {costType === 'variable' && (
+        <Button onClick={addVariableCost} variant="outline" data-testid="button-add-variable-cost">
+          Add Variable Cost
+        </Button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6 p-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Cost Structure</h2>
+        <p className="text-muted-foreground">
+          Define your cost structure with simplified inputs. All values are expressed in thousands.
+        </p>
+      </div>
+
+      {/* Employee Inputs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Configuration</CardTitle>
+          <CardDescription>
+            Simplified employee inputs - costs are auto-calculated at $250k/year per person
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="team-members">Number of Team Members</Label>
+              <Input
+                id="team-members"
+                type="number"
+                value={employeeInputs.teamMembers}
+                onChange={(e) => handleEmployeeInputChange('teamMembers', Number(e.target.value))}
+                data-testid="input-team-members"
+              />
+            </div>
+            <div>
+              <Label htmlFor="augmented-resources">Number of Augmented Resources</Label>
+              <Input
+                id="augmented-resources"
+                type="number"
+                value={employeeInputs.augmentedResources}
+                onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
+                data-testid="input-augmented-resources"
+              />
+            </div>
+            <div>
+              <Label htmlFor="maintenance-cost">Monthly Maintenance (thousands)</Label>
+              <Input
+                id="maintenance-cost"
+                type="number"
+                value={maintenanceCost}
+                onChange={(e) => setMaintenanceCost(Number(e.target.value))}
+                data-testid="input-maintenance-cost"
+              />
+            </div>
+            <div>
+              <Label htmlFor="corporate-overhead-rate">Corporate Overhead Rate (%)</Label>
+              <Input
+                id="corporate-overhead-rate"
+                type="number"
+                value={corporateOverheadRate}
+                onChange={(e) => setCorporateOverheadRate(Number(e.target.value))}
+                data-testid="input-corporate-overhead-rate"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="fixed" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="fixed" className="flex items-center gap-2">
-            <Anchor className="w-4 h-4" />
+          <TabsTrigger value="fixed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900">
             Fixed Costs
           </TabsTrigger>
-          <TabsTrigger value="variable" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
+          <TabsTrigger value="variable" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-900">
             Variable Costs
           </TabsTrigger>
-          <TabsTrigger value="onetime" className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
+          <TabsTrigger value="onetime" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
             One-time Costs
           </TabsTrigger>
         </TabsList>
 
-        {/* Fixed Costs Tab */}
-        <TabsContent value="fixed" className="space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader className="border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground flex items-center">
-                <Anchor className="text-primary w-5 h-5 mr-2" />
-                Fixed Costs - Year 1 Monthly Breakdown
-              </h3>
-              <p className="text-sm text-muted-foreground">Costs that remain relatively constant regardless of usage</p>
+        <TabsContent value="fixed" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-blue-900">Fixed Costs (thousands)</CardTitle>
+              <CardDescription>
+                Costs that remain constant regardless of usage or scale. Employee costs are auto-calculated.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                {data.fixedCosts.map((cost, costIndex) => {
-                  const IconComponent = getIcon(cost.icon);
-                  return (
-                    <div key={cost.id} className="border border-border rounded-lg p-4">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <IconComponent className="text-primary w-5 h-5" />
-                        <span className="font-medium text-lg">{cost.name}</span>
-                        {cost.isCommon ? (
-                          <Badge variant="secondary">Common</Badge>
-                        ) : (
-                          <Badge variant="outline">Product-specific</Badge>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-6 gap-3">
-                        {monthNames.map((month, monthIndex) => (
-                          <div key={month} className="text-center">
-                            <div className="text-xs font-medium text-muted-foreground mb-1">{month}</div>
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              value={cost.monthlyAmounts[monthIndex] || 0}
-                              onChange={(e) => updateFixedCostMonth(costIndex, monthIndex, parseFloat(e.target.value) || 0)}
-                              className="text-center text-sm"
-                              data-testid={`input-fixed-${costIndex}-${monthIndex}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              <div className="mt-6 p-4 bg-secondary rounded-md">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-secondary-foreground">Total Fixed Costs (Year 1)</span>
-                  <span className="text-xl font-bold text-primary" data-testid="text-total-fixed-costs">
-                    ${getTotalFixedCosts().toLocaleString()}
-                  </span>
-                </div>
-              </div>
+            <CardContent>
+              {renderCostTable(data.fixedCosts, 'fixed')}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Variable Costs Tab */}
-        <TabsContent value="variable" className="space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader className="border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground flex items-center">
-                <TrendingUp className="text-chart-2 w-5 h-5 mr-2" />
-                Variable Costs - Year 1 Monthly Breakdown
-              </h3>
-              <p className="text-sm text-muted-foreground">Costs that scale with usage, users, or revenue</p>
+        <TabsContent value="variable" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-orange-900">Variable Costs (thousands)</CardTitle>
+              <CardDescription>
+                Costs that change based on usage, scale, or customer volume.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                {data.variableCosts.map((cost, costIndex) => {
-                  const IconComponent = getIcon(cost.icon);
-                  return (
-                    <div key={cost.id} className="border border-border rounded-lg p-4">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <IconComponent className="text-chart-2 w-5 h-5" />
-                        <span className="font-medium text-lg">{cost.name}</span>
-                        {cost.isCommon ? (
-                          <Badge variant="secondary">Common</Badge>
-                        ) : (
-                          <Badge variant="outline">Product-specific</Badge>
-                        )}
-                        {cost.unit && (
-                          <Badge variant="outline" className="text-xs">
-                            {cost.unit}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-6 gap-3">
-                        {monthNames.map((month, monthIndex) => (
-                          <div key={month} className="text-center">
-                            <div className="text-xs font-medium text-muted-foreground mb-1">{month}</div>
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              value={cost.monthlyAmounts[monthIndex] || 0}
-                              onChange={(e) => updateVariableCostMonth(costIndex, monthIndex, parseFloat(e.target.value) || 0)}
-                              className="text-center text-sm"
-                              data-testid={`input-variable-${costIndex}-${monthIndex}`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              <div className="mt-6 p-4 bg-secondary rounded-md">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-secondary-foreground">Total Variable Costs (Year 1)</span>
-                  <span className="text-xl font-bold text-chart-2" data-testid="text-total-variable-costs">
-                    ${getTotalVariableCosts().toLocaleString()}
-                  </span>
-                </div>
-              </div>
+            <CardContent>
+              {renderCostTable(data.variableCosts, 'variable')}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* One-time Costs Tab */}
-        <TabsContent value="onetime" className="space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader className="border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground flex items-center">
-                <Calendar className="text-chart-3 w-5 h-5 mr-2" />
-                One-time Costs
-              </h3>
-              <p className="text-sm text-muted-foreground">Upfront costs incurred once during project initiation</p>
+        <TabsContent value="onetime" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-green-900">One-time Costs (thousands)</CardTitle>
+              <CardDescription>
+                Initial setup costs, licenses, and other one-off expenses.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {data.oneTimeCosts.map((cost, index) => {
-                  const IconComponent = getIcon(cost.icon);
-                  return (
-                    <div key={cost.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-md">
-                      <div className="flex items-center space-x-3">
-                        <IconComponent className="text-chart-3 w-4 h-4" />
-                        <span className="font-medium">{cost.name}</span>
-                        {cost.isCommon ? (
-                          <Badge variant="secondary">Common</Badge>
-                        ) : (
-                          <Badge variant="outline">Product-specific</Badge>
-                        )}
-                      </div>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={cost.amount}
-                        onChange={(e) => updateOneTimeCost(index, parseFloat(e.target.value) || 0)}
-                        className="w-32 text-right"
-                        data-testid={`input-onetime-cost-${index}`}
-                      />
-                    </div>
-                  );
-                })}
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount (thousands)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.oneTimeCosts.map((cost) => {
+                      const Icon = getIcon(cost.icon);
+                      return (
+                        <tr key={cost.id}>
+                          <td className="border border-gray-200 dark:border-gray-700 p-2">
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-4 w-4" />
+                              <Input
+                                value={cost.name}
+                                onChange={(e) => {
+                                  const updatedCosts = data.oneTimeCosts.map(c => 
+                                    c.id === cost.id ? { ...c, name: e.target.value } : c
+                                  );
+                                  onChange({ ...data, oneTimeCosts: updatedCosts });
+                                }}
+                                className="border-0 font-medium"
+                                data-testid={`input-onetime-name-${cost.id}`}
+                              />
+                            </div>
+                          </td>
+                          <td className="border border-gray-200 dark:border-gray-700 p-1">
+                            <Input
+                              type="number"
+                              value={cost.amount}
+                              onChange={(e) => {
+                                const updatedCosts = data.oneTimeCosts.map(c => 
+                                  c.id === cost.id ? { ...c, amount: Number(e.target.value) } : c
+                                );
+                                onChange({ ...data, oneTimeCosts: updatedCosts });
+                              }}
+                              className="text-center h-8"
+                              data-testid={`input-onetime-amount-${cost.id}`}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-              
-              <div className="mt-6 p-4 bg-secondary rounded-md">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-secondary-foreground">Total One-time Costs</span>
-                  <span className="text-xl font-bold text-chart-3" data-testid="text-total-onetime-costs">
-                    ${getTotalOneTimeCosts().toLocaleString()}
-                  </span>
-                </div>
-              </div>
+              <Button onClick={addOneTimeCost} variant="outline" data-testid="button-add-onetime-cost">
+                Add One-time Cost
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Cost Increase Assumptions for Years 2-5 */}
-      <Card className="mt-8 shadow-sm">
-        <CardHeader className="border-b border-border">
-          <h3 className="text-lg font-semibold text-card-foreground flex items-center">
-            <TrendingUp className="text-primary w-5 h-5 mr-2" />
-            Cost Increase Assumptions (Years 2-5)
-          </h3>
-          <p className="text-sm text-muted-foreground">Define percentage increases for fixed and variable costs</p>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {data.costIncreaseAssumptions.map((assumption, index) => (
-              <div key={assumption.year} className="border border-border rounded-lg p-4">
-                <h4 className="font-medium text-center mb-4">Year {assumption.year}</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm text-muted-foreground">Fixed Costs Increase</label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="5"
-                        value={assumption.fixedIncrease}
-                        onChange={(e) => updateCostIncreaseAssumption(index, 'fixedIncrease', parseFloat(e.target.value) || 0)}
-                        className="text-right"
-                        data-testid={`input-year-${assumption.year}-fixed-increase`}
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">Variable Costs Increase</label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        step="0.1"
-                        placeholder="3"
-                        value={assumption.variableIncrease}
-                        onChange={(e) => updateCostIncreaseAssumption(index, 'variableIncrease', parseFloat(e.target.value) || 0)}
-                        className="text-right"
-                        data-testid={`input-year-${assumption.year}-variable-increase`}
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Navigation */}
-      <div className="flex justify-between mt-8">
-        <Button
-          variant="outline"
-          onClick={onPrevious}
-          data-testid="button-back-to-product"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+      <div className="flex justify-between">
+        <Button onClick={onPrevious} variant="outline" data-testid="button-previous">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Previous
         </Button>
-        <Button
-          onClick={onNext}
-          data-testid="button-continue-demand-analysis"
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Continue to Demand Analysis
-          <ArrowRight className="w-4 h-4 ml-2" />
+        <Button onClick={onNext} data-testid="button-next">
+          Next
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>
