@@ -18,8 +18,8 @@ export default function PricingStudio() {
     targetMarket: "",
     fixedCosts: [],
     variableCosts: [],
-    yearMultipliers: [],
-    monthlyMultipliers: [],
+    oneTimeCosts: [],
+    costIncreaseAssumptions: [],
     initialUsers: 100,
     growthRate: 15,
     churnRate: 5,
@@ -53,11 +53,17 @@ export default function PricingStudio() {
     setProjectData(prev => ({ ...prev, ...data }));
   };
 
-  const handleCostStructureChange = (data: { fixedCosts: any[]; variableCosts: any[]; yearMultipliers: any[] }) => {
+  const handleCostStructureChange = (data: { 
+    fixedCosts: any[]; 
+    variableCosts: any[]; 
+    oneTimeCosts: any[]; 
+    costIncreaseAssumptions: any[];
+    productCategory: string;
+  }) => {
     setProjectData(prev => ({ ...prev, ...data }));
   };
 
-  const handleDemandDataChange = (data: { demand: any; fixedCosts: any[]; variableCosts: any[] }) => {
+  const handleDemandDataChange = (data: { demand: any; fixedCosts: any[]; variableCosts: any[]; oneTimeCosts: any[] }) => {
     setProjectData(prev => ({
       ...prev,
       initialUsers: data.demand.initialUsers,
@@ -122,7 +128,9 @@ export default function PricingStudio() {
             data={{
               fixedCosts: projectData.fixedCosts || [],
               variableCosts: projectData.variableCosts || [],
-              yearMultipliers: projectData.yearMultipliers || [],
+              oneTimeCosts: projectData.oneTimeCosts || [],
+              costIncreaseAssumptions: projectData.costIncreaseAssumptions || [],
+              productCategory: projectData.category,
             }}
             onChange={handleCostStructureChange}
             onNext={() => setCurrentStep(3)}
@@ -141,6 +149,7 @@ export default function PricingStudio() {
               },
               fixedCosts: projectData.fixedCosts || [],
               variableCosts: projectData.variableCosts || [],
+              oneTimeCosts: projectData.oneTimeCosts || [],
             }}
             onChange={handleDemandDataChange}
             onPrevious={() => setCurrentStep(2)}
