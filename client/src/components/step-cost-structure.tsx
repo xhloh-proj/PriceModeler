@@ -757,6 +757,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         </th>
                       ))}
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total Year 1 ($'000s)</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total 5-Year ($'000s)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -785,6 +786,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                       <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
                         {data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
                       </td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {(data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0) * 5).toFixed(1)}
+                      </td>
                     </tr>
                     {expandedCategories.fixed && data.fixedCosts.map((cost) => (
                       <tr key={cost.id} className="bg-blue-50 dark:bg-blue-950/20">
@@ -798,6 +802,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         ))}
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
                           {cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(1)}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0) * 5).toFixed(1)}
                         </td>
                       </tr>
                     ))}
@@ -827,6 +834,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                       <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
                         {data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
                       </td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {(data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0) * 5).toFixed(1)}
+                      </td>
                     </tr>
                     {expandedCategories.variable && data.variableCosts.map((cost) => (
                       <tr key={cost.id} className="bg-orange-50 dark:bg-orange-950/20">
@@ -840,6 +850,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         ))}
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
                           {cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0).toFixed(1)}
+                        </td>
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {(cost.monthlyAmounts.reduce((sum, amount) => sum + amount, 0) * 5).toFixed(1)}
                         </td>
                       </tr>
                     ))}
@@ -866,6 +879,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                       <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
                         {(data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0)).toFixed(1)}
                       </td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {(data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0)).toFixed(1)}
+                      </td>
                     </tr>
                     {expandedCategories.capex && data.oneTimeCosts.map((cost) => (
                       <tr key={cost.id} className="bg-green-50 dark:bg-green-950/20">
@@ -880,6 +896,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                             </td>
                           );
                         })}
+                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
+                          {cost.amount.toFixed(1)}
+                        </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
                           {cost.amount.toFixed(1)}
                         </td>
@@ -905,6 +924,14 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           const variableAnnual = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
                           const capexAnnual = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
                           return (fixedAnnual + variableAnnual + capexAnnual).toFixed(1);
+                        })()}
+                      </td>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-bold">
+                        {(() => {
+                          const fixedAnnual = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+                          const variableAnnual = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+                          const capexTotal = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+                          return ((fixedAnnual + variableAnnual) * 5 + capexTotal).toFixed(1);
                         })()}
                       </td>
                     </tr>
@@ -938,7 +965,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     size="sm"
                     data-testid="button-copy-yearly-values"
                   >
-                    Copy Year 1 Values Across Years 2-5
+                    Copy Year 1 values across Years 2-5 with inflation
                   </Button>
                 </div>
 

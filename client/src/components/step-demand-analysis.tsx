@@ -216,25 +216,25 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
               <div className="text-xs text-gray-500 mt-1">per unit</div>
             </div>
             <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-              <div className="text-sm font-medium text-orange-600">Target Price (10% Profit)</div>
+              <div className="text-sm font-medium text-orange-600">Target Price (110% TCRR)</div>
               <div className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                 ${pricingRecommendations.ebit90.toLocaleString()}
               </div>
-              <div className="text-xs text-orange-500 mt-1">per unit (90% cost ratio)</div>
+              <div className="text-xs text-orange-500 mt-1">per unit</div>
             </div>
             <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-              <div className="text-sm font-medium text-green-600">Conservative Price</div>
+              <div className="text-sm font-medium text-green-600">Conservative Price (90% TCRR)</div>
               <div className="text-2xl font-bold text-green-900 dark:text-green-300">
                 ${pricingRecommendations.ebit110.toLocaleString()}
               </div>
-              <div className="text-xs text-green-500 mt-1">per unit (110% cost ratio)</div>
+              <div className="text-xs text-green-500 mt-1">per unit</div>
             </div>
           </div>
           
           <div className="mt-4 text-sm text-muted-foreground space-y-1">
             <div><strong>Total 5-Year Costs:</strong> ${calculateTotalCosts().toLocaleString()} thousand</div>
             <div><strong>Total 5-Year Demand:</strong> {calculateTotalDemand().toLocaleString()} units</div>
-            <div><strong>Note:</strong> EBIT margins assume operational efficiency targets</div>
+            <div><strong>Note:</strong> TCRR = Total Cost Recovery Ratio</div>
           </div>
         </CardContent>
       </Card>
