@@ -7,6 +7,7 @@ import StepSidebar from "@/components/step-sidebar";
 import StepProductSetup from "@/components/step-product-setup";
 import StepCostStructure from "@/components/step-cost-structure";
 import StepDemandAnalysis from "@/components/step-demand-analysis";
+import StepSummary from "@/components/step-summary";
 import type { InsertPricingProject } from "@shared/schema";
 
 export default function PricingStudio() {
@@ -149,6 +150,25 @@ export default function PricingStudio() {
             }}
             onChange={handleDemandDataChange}
             onPrevious={() => setCurrentStep(2)}
+            onNext={() => setCurrentStep(4)}
+            onSave={handleSave}
+            onExport={handleExport}
+          />
+        );
+      case 4:
+        return (
+          <StepSummary
+            data={{
+              productName: projectData.name || '',
+              productCategory: projectData.category || '',
+              description: projectData.description || '',
+              fixedCosts: projectData.fixedCosts || [],
+              variableCosts: projectData.variableCosts || [],
+              oneTimeCosts: projectData.oneTimeCosts || [],
+              productDemand: projectData.productDemand || [0, 0, 0, 0, 0],
+              growthRate: projectData.growthRate || 0,
+            }}
+            onPrevious={() => setCurrentStep(3)}
             onSave={handleSave}
             onExport={handleExport}
           />

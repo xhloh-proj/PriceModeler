@@ -38,11 +38,12 @@ interface StepDemandAnalysisProps {
   projectData: ProjectData;
   onChange: (data: DemandAnalysisData) => void;
   onPrevious: () => void;
+  onNext?: () => void;
   onSave: () => void;
   onExport: () => void;
 }
 
-export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onSave, onExport }: StepDemandAnalysisProps) {
+export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onNext, onSave, onExport }: StepDemandAnalysisProps) {
   const [tempGrowthRate, setTempGrowthRate] = useState(data.growthRate);
   const [fixedPrice, setFixedPrice] = useState<number>(0);
 
@@ -355,6 +356,12 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
             <Download className="w-4 h-4 mr-2" />
             Export Complete Model
           </Button>
+          {onNext && (
+            <Button onClick={onNext} data-testid="button-next">
+              Next: Summary
+              <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

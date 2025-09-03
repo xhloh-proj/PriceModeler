@@ -10,6 +10,7 @@ export default function StepSidebar({ currentStep, projectName }: StepSidebarPro
     { number: 1, title: "Product Setup", subtitle: "Name & nature" },
     { number: 2, title: "Cost Structure", subtitle: "Fixed & variable costs" },
     { number: 3, title: "Demand & Pricing", subtitle: "Projections & analysis" },
+    { number: 4, title: "Executive Summary", subtitle: "KPIs & P&L analysis" },
   ];
 
   return (
