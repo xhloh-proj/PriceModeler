@@ -290,25 +290,31 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
             {fixedPrice > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Units to Breakeven</div>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">5Y Units to Breakeven</div>
                   <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {breakevenAnalysis.breakeven.toLocaleString()}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">units</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {breakevenAnalysis.breakeven.toLocaleString()} units | {Math.ceil(breakevenAnalysis.breakeven / 5).toLocaleString()}/year avg
+                  </div>
                 </div>
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
-                  <div className="text-sm font-medium text-orange-600">Units for 110% TCRR</div>
+                  <div className="text-sm font-medium text-orange-600">5Y Units for 110% TCRR</div>
                   <div className="text-2xl font-bold text-orange-900 dark:text-orange-300">
                     {breakevenAnalysis.tcrr110.toLocaleString()}
                   </div>
-                  <div className="text-xs text-orange-500 mt-1">units</div>
+                  <div className="text-xs text-orange-500 mt-1">
+                    {breakevenAnalysis.tcrr110.toLocaleString()} units | {Math.ceil(breakevenAnalysis.tcrr110 / 5).toLocaleString()}/year avg
+                  </div>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                  <div className="text-sm font-medium text-green-600">Units for 90% TCRR</div>
+                  <div className="text-sm font-medium text-green-600">5Y Units for 90% TCRR</div>
                   <div className="text-2xl font-bold text-green-900 dark:text-green-300">
                     {breakevenAnalysis.tcrr90.toLocaleString()}
                   </div>
-                  <div className="text-xs text-green-500 mt-1">units</div>
+                  <div className="text-xs text-green-500 mt-1">
+                    {breakevenAnalysis.tcrr90.toLocaleString()} units | {Math.ceil(breakevenAnalysis.tcrr90 / 5).toLocaleString()}/year avg
+                  </div>
                 </div>
               </div>
             )}
