@@ -332,25 +332,122 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     setYearlyData(newYearlyData);
   };
 
-  const handlePasteData = (costType: 'fixed' | 'variable', costId: string, event: React.ClipboardEvent) => {
+  const handlePasteData = (costType: 'fixed' | 'variable', costId: string, cellIndex: number, event: React.ClipboardEvent) => {
     event.preventDefault();
     const pasteData = event.clipboardData.getData('text');
-    const values = pasteData.split(/[\t\n,]/).map(val => {
-      const num = parseFloat(val.trim());
-      return isNaN(num) ? 0 : num;
-    }).slice(0, 12); // Only take first 12 values
+    
+    // Parse Excel/CSV data - handle both tab-separated (Excel) and comma-separated values
+    const rows = pasteData.split('\n').filter(row => row.trim() !== '');
+    
+    if (rows.length === 1) {
+      // Single row paste - paste across columns for the current cost item
+      const values = rows[0].split(/\t|,/).map(val => {
+        const num = parseFloat(val.trim());
+        return isNaN(num) ? 0 : num;
+      });
 
-    if (values.length > 0) {
-      const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
-      const updatedCosts = costs.map(cost => {
-        if (cost.id === costId) {
-          const newAmounts = [...cost.monthlyAmounts];
-          values.forEach((value, index) => {
-            if (index < 12) newAmounts[index] = value;
-          });
-          return { ...cost, monthlyAmounts: newAmounts };
+      if (values.length > 0) {
+        const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+        const updatedCosts = costs.map(cost => {
+          if (cost.id === costId) {
+            const newAmounts = [...cost.monthlyAmounts];
+            
+            // Apply pasted values starting from the cell where paste occurred
+            values.forEach((value, index) => {
+              const targetIndex = cellIndex + index;
+              if (targetIndex < 12) {
+                newAmounts[targetIndex] = value;
+              }
+            });
+            
+            return { ...cost, monthlyAmounts: newAmounts };
+          }
+          return cost;
+        });
+
+        if (costType === 'fixed') {
+          onChange({ ...data, fixedCosts: updatedCosts });
+        } else {
+          onChange({ ...data, variableCosts: updatedCosts });
         }
-        return cost;
+      }
+    } else {
+      // Multi-row paste - paste across multiple cost items
+      const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+      const currentCostIndex = costs.findIndex(cost => cost.id === costId);
+      
+      if (currentCostIndex !== -1) {
+        const updatedCosts = [...costs];
+        
+        rows.forEach((row, rowIndex) => {
+          const targetCostIndex = currentCostIndex + rowIndex;
+          if (targetCostIndex < costs.length) {
+            const values = row.split(/\t|,/).map(val => {
+              const num = parseFloat(val.trim());
+              return isNaN(num) ? 0 : num;
+            });
+            
+            const newAmounts = [...updatedCosts[targetCostIndex].monthlyAmounts];
+            values.forEach((value, colIndex) => {
+              const targetIndex = cellIndex + colIndex;
+              if (targetIndex < 12) {
+                newAmounts[targetIndex] = value;
+              }
+            });
+            
+            updatedCosts[targetCostIndex] = { 
+              ...updatedCosts[targetCostIndex], 
+              monthlyAmounts: newAmounts 
+            };
+          }
+        });
+
+        if (costType === 'fixed') {
+          onChange({ ...data, fixedCosts: updatedCosts });
+        } else {
+          onChange({ ...data, variableCosts: updatedCosts });
+        }
+      }
+    }
+  };
+
+  // Table-level paste handler for large Excel ranges
+  const handleTablePaste = (costType: 'fixed' | 'variable', event: React.ClipboardEvent) => {
+    const target = event.target as HTMLElement;
+    
+    // Only handle paste if it's not already handled by an input field
+    if (target.tagName === 'INPUT') return;
+    
+    event.preventDefault();
+    const pasteData = event.clipboardData.getData('text');
+    const rows = pasteData.split('\n').filter(row => row.trim() !== '');
+    
+    if (rows.length > 1) {
+      const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+      const updatedCosts = [...costs];
+      
+      // Try to apply each row to available cost items
+      rows.forEach((row, rowIndex) => {
+        if (rowIndex < costs.length) {
+          const values = row.split(/\t|,/).map(val => {
+            const num = parseFloat(val.trim());
+            return isNaN(num) ? 0 : num;
+          });
+          
+          if (values.length > 0) {
+            const newAmounts = [...updatedCosts[rowIndex].monthlyAmounts];
+            values.forEach((value, colIndex) => {
+              if (colIndex < 12) {
+                newAmounts[colIndex] = value;
+              }
+            });
+            
+            updatedCosts[rowIndex] = { 
+              ...updatedCosts[rowIndex], 
+              monthlyAmounts: newAmounts 
+            };
+          }
+        }
       });
 
       if (costType === 'fixed') {
@@ -363,10 +460,13 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
   const renderCostTable = (costs: CostItem[], costType: 'fixed' | 'variable') => (
     <div className="space-y-4">
-      <div className="text-sm text-muted-foreground mb-2">
-        💡 Tip: You can copy values from Excel and paste into any row to fill multiple months at once
+      <div className="text-sm text-muted-foreground mb-2 space-y-1">
+        <div>All values in thousands ($'000s)</div>
+        <div>📋 <strong>Excel Paste Support:</strong> Select cells in Excel → Copy (Ctrl+C) → Paste into any cell (Ctrl+V) to auto-fill multiple months</div>
+        <div>• Single row: Paste into any cell to fill across months for that cost item</div>
+        <div>• Multiple rows: Paste multiple Excel rows to fill multiple cost items at once</div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" onPaste={(e) => handleTablePaste(costType, e)}>
         <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800">
@@ -420,7 +520,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         type="number"
                         value={amount}
                         onChange={(e) => handleCostItemChange(costType, cost.id, monthIndex, Number(e.target.value))}
-                        onPaste={(e) => handlePasteData(costType, cost.id, e)}
+                        onPaste={(e) => handlePasteData(costType, cost.id, monthIndex, e)}
                         className="text-center h-8 text-sm"
                         data-testid={`input-cost-${cost.id}-${monthIndex}`}
                         disabled={cost.id === 'team-members' || cost.id === 'augmented-resources' || cost.id === 'corporate-overheads'}
