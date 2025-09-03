@@ -10,19 +10,59 @@ interface DemandAnalysisData {
   productDemand: number[];
 }
 
+interface CostItem {
+  id: string;
+  name: string;
+  monthlyAmounts: number[];
+  icon: string;
+  isCommon: boolean;
+  unit?: string;
+}
+
+interface OneTimeCostItem {
+  id: string;
+  name: string;
+  amount: number;
+  icon: string;
+  isCommon: boolean;
+}
+
+interface ProjectData {
+  fixedCosts: CostItem[];
+  variableCosts: CostItem[];
+  oneTimeCosts: OneTimeCostItem[];
+}
+
 interface StepDemandAnalysisProps {
   data: DemandAnalysisData;
+  projectData: ProjectData;
   onChange: (data: DemandAnalysisData) => void;
   onPrevious: () => void;
   onSave: () => void;
   onExport: () => void;
 }
 
-export default function StepDemandAnalysis({ data, onChange, onPrevious, onSave, onExport }: StepDemandAnalysisProps) {
+export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onSave, onExport }: StepDemandAnalysisProps) {
+  const [tempGrowthRate, setTempGrowthRate] = useState(data.growthRate);
+
   const handleGrowthRateChange = (value: number) => {
+    setTempGrowthRate(value);
+  };
+
+  const applyGrowthRate = () => {
+    const baseYear1 = data.productDemand[0] || 0;
+    if (baseYear1 === 0 || tempGrowthRate === 0) return;
+
+    const newDemand = [baseYear1];
+    for (let i = 1; i < 5; i++) {
+      const previousYear = newDemand[i - 1];
+      newDemand.push(Math.round(previousYear * (1 + tempGrowthRate / 100)));
+    }
+
     onChange({
       ...data,
-      growthRate: value
+      growthRate: tempGrowthRate,
+      productDemand: newDemand
     });
   };
 
@@ -34,6 +74,45 @@ export default function StepDemandAnalysis({ data, onChange, onPrevious, onSave,
       productDemand: updatedDemand
     });
   };
+
+  // Calculate total costs over 5 years
+  const calculateTotalCosts = () => {
+    const fixedCostPerYear = projectData.fixedCosts.reduce((sum, cost) => 
+      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const variableCostPerYear = projectData.variableCosts.reduce((sum, cost) => 
+      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const oneTimeCosts = projectData.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+    
+    const annualCosts = fixedCostPerYear + variableCostPerYear;
+    const totalFiveYearCosts = (annualCosts * 5) + oneTimeCosts;
+    
+    return totalFiveYearCosts;
+  };
+
+  // Calculate total demand over 5 years
+  const calculateTotalDemand = () => {
+    return data.productDemand.reduce((sum, demand) => sum + demand, 0);
+  };
+
+  // Calculate pricing recommendations
+  const calculatePricingRecommendations = () => {
+    const totalCosts = calculateTotalCosts();
+    const totalDemand = calculateTotalDemand();
+    
+    if (totalDemand === 0) return { breakeven: 0, ebit90: 0, ebit110: 0 };
+    
+    const breakevenPrice = totalCosts / totalDemand;
+    const ebit90Price = breakevenPrice / 0.9; // 90% cost ratio means 10% profit margin
+    const ebit110Price = breakevenPrice / 1.1; // 110% cost ratio means -10% loss (conservative pricing)
+    
+    return {
+      breakeven: Math.round(breakevenPrice * 100) / 100,
+      ebit90: Math.round(ebit90Price * 100) / 100,
+      ebit110: Math.round(ebit110Price * 100) / 100
+    };
+  };
+
+  const pricingRecommendations = calculatePricingRecommendations();
 
   return (
     <div className="p-8">
@@ -54,12 +133,12 @@ export default function StepDemandAnalysis({ data, onChange, onPrevious, onSave,
         <CardContent className="space-y-6">
           {/* Growth Rate Input */}
           <div className="flex items-center gap-2">
-            <Label htmlFor="demand-growth-rate" className="text-sm font-medium">Growth Rate (optional):</Label>
+            <Label htmlFor="demand-growth-rate" className="text-sm font-medium">Growth Rate:</Label>
             <Input
               id="demand-growth-rate"
               type="number"
-              value={data.growthRate || ''}
-              onChange={(e) => handleGrowthRateChange(Number(e.target.value) || 0)}
+              value={tempGrowthRate || ''}
+              onChange={(e) => setTempGrowthRate(Number(e.target.value) || 0)}
               className="w-20 h-8 text-center"
               min="0"
               max="100"
@@ -68,6 +147,18 @@ export default function StepDemandAnalysis({ data, onChange, onPrevious, onSave,
               placeholder="0"
             />
             <span className="text-sm text-gray-600">%</span>
+            <Button
+              onClick={applyGrowthRate}
+              size="sm"
+              variant="outline"
+              data-testid="button-apply-growth-rate"
+              disabled={data.productDemand[0] === 0 || tempGrowthRate === 0}
+            >
+              Apply
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              (Enter Year 1 demand first, then apply growth rate to calculate Years 2-5)
+            </span>
           </div>
 
           {/* Product Demand Table */}
@@ -103,6 +194,47 @@ export default function StepDemandAnalysis({ data, onChange, onPrevious, onSave,
                 </tr>
               </tbody>
             </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pricing Recommendations */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-green-900">Pricing Recommendations</CardTitle>
+          <CardDescription>
+            Based on total costs and demand projections across 5 years.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Breakeven Price</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                ${pricingRecommendations.breakeven.toLocaleString()}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">per unit</div>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+              <div className="text-sm font-medium text-orange-600">Target Price (10% Profit)</div>
+              <div className="text-2xl font-bold text-orange-900 dark:text-orange-300">
+                ${pricingRecommendations.ebit90.toLocaleString()}
+              </div>
+              <div className="text-xs text-orange-500 mt-1">per unit (90% cost ratio)</div>
+            </div>
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="text-sm font-medium text-green-600">Conservative Price</div>
+              <div className="text-2xl font-bold text-green-900 dark:text-green-300">
+                ${pricingRecommendations.ebit110.toLocaleString()}
+              </div>
+              <div className="text-xs text-green-500 mt-1">per unit (110% cost ratio)</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-sm text-muted-foreground space-y-1">
+            <div><strong>Total 5-Year Costs:</strong> ${calculateTotalCosts().toLocaleString()} thousand</div>
+            <div><strong>Total 5-Year Demand:</strong> {calculateTotalDemand().toLocaleString()} units</div>
+            <div><strong>Note:</strong> EBIT margins assume operational efficiency targets</div>
           </div>
         </CardContent>
       </Card>

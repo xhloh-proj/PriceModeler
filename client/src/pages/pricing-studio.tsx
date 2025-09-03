@@ -142,6 +142,11 @@ export default function PricingStudio() {
               growthRate: projectData.growthRate || 0,
               productDemand: projectData.productDemand || [0, 0, 0, 0, 0],
             }}
+            projectData={{
+              fixedCosts: projectData.fixedCosts || [],
+              variableCosts: projectData.variableCosts || [],
+              oneTimeCosts: projectData.oneTimeCosts || [],
+            }}
             onChange={handleDemandDataChange}
             onPrevious={() => setCurrentStep(2)}
             onSave={handleSave}
