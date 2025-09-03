@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus } from "lucide-react";
 import { useState, useEffect } from "react";
+import { getCostSuggestions } from "@/lib/cost-suggestions";
 
 interface CostItem {
   id: string;
@@ -95,9 +96,13 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     return Array(12).fill(Number(monthlyOverhead.toFixed(1)));
   };
 
-  // Update costs when employee inputs change
+  // Update costs when employee inputs change or product category changes
   useEffect(() => {
-    const updatedFixedCosts: CostItem[] = [
+    // Get product-specific cost suggestions
+    const suggestions = getCostSuggestions(data.productCategory);
+
+    // Create base fixed costs with employee calculations
+    const baseFixedCosts: CostItem[] = [
       {
         id: 'team-members',
         name: 'Team Members',
@@ -123,14 +128,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         unit: 'monthly'
       },
       {
-        id: 'security-monitoring',
-        name: 'Security Monitoring',
-        monthlyAmounts: Array(12).fill(25),
-        icon: 'shield',
-        isCommon: true,
-        unit: 'monthly'
-      },
-      {
         id: 'corporate-overheads',
         name: 'Corporate Overheads',
         monthlyAmounts: calculateCorporateOverheads(),
@@ -140,53 +137,26 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       }
     ];
 
-    const updatedVariableCosts: CostItem[] = [
-      {
-        id: 'cloud-hosting',
-        name: 'Cloud Hosting',
-        monthlyAmounts: Array(12).fill(50),
-        icon: 'cloud',
-        isCommon: true,
-        unit: 'compute/storage scaling'
-      },
-      {
-        id: 'software-licenses',
-        name: 'Software Licenses',
-        monthlyAmounts: Array(12).fill(30),
-        icon: 'database',
-        isCommon: true,
-        unit: 'monthly'
-      },
-      ...data.variableCosts.filter(cost => !cost.isCommon)
+    // Merge user's custom costs with base costs and product suggestions
+    const existingCustomFixed = data.fixedCosts.filter(cost => !cost.isCommon);
+    const updatedFixedCosts = [
+      ...baseFixedCosts,
+      ...suggestions.fixedCosts.map(cost => ({ ...cost, monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000) })), // Convert to thousands
+      ...existingCustomFixed
     ];
 
-    // Add product-specific default Capex items for Infrastructure
-    let updatedOneTimeCosts = [...data.oneTimeCosts.filter(cost => !cost.isCommon)]; // Keep custom items
-    
-    if (data.productCategory === 'infrastructure') {
-      const hasOnPremServers = updatedOneTimeCosts.some(cost => cost.id === 'onprem-servers');
-      const hasVendorSetup = updatedOneTimeCosts.some(cost => cost.id === 'vendor-setup');
-      
-      if (!hasOnPremServers) {
-        updatedOneTimeCosts.unshift({
-          id: 'onprem-servers',
-          name: 'On-prem servers and networking',
-          amount: 75,
-          icon: 'server',
-          isCommon: true
-        });
-      }
-      
-      if (!hasVendorSetup) {
-        updatedOneTimeCosts.unshift({
-          id: 'vendor-setup',
-          name: 'Vendor set up costs',
-          amount: 20,
-          icon: 'building',
-          isCommon: true
-        });
-      }
-    }
+    const existingCustomVariable = data.variableCosts.filter(cost => !cost.isCommon);
+    const updatedVariableCosts = [
+      ...suggestions.variableCosts.map(cost => ({ ...cost, monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000) })), // Convert to thousands
+      ...existingCustomVariable
+    ];
+
+    // Merge user's custom one-time costs with product suggestions
+    const existingCustomOneTime = data.oneTimeCosts.filter(cost => !cost.isCommon);
+    const updatedOneTimeCosts = [
+      ...suggestions.oneTimeCosts.map(cost => ({ ...cost, amount: cost.amount / 1000 })), // Convert to thousands
+      ...existingCustomOneTime
+    ];
 
     onChange({ 
       ...data, 
