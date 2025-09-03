@@ -73,7 +73,15 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
   // Calculate corporate overheads
   const calculateCorporateOverheads = () => {
-    const totalCosts = calculateTotalCosts();
+    // Calculate totals excluding corporate overheads to avoid circular calculation
+    const totalFixed = data.fixedCosts
+      .filter(cost => cost.id !== 'corporate-overheads')
+      .reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const totalVariable = data.variableCosts.reduce((sum, cost) => 
+      sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const totalOneTime = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+    
+    const totalCosts = totalFixed + totalVariable + totalOneTime;
     const monthlyOverhead = (totalCosts * (corporateOverheadRate / 100)) / 12;
     return Array(12).fill(Number(monthlyOverhead.toFixed(1)));
   };
@@ -106,6 +114,14 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         unit: 'monthly'
       },
       {
+        id: 'security-monitoring',
+        name: 'Security Monitoring',
+        monthlyAmounts: Array(12).fill(25),
+        icon: 'shield',
+        isCommon: true,
+        unit: 'monthly'
+      },
+      {
         id: 'corporate-overheads',
         name: 'Corporate Overheads',
         monthlyAmounts: calculateCorporateOverheads(),
@@ -115,11 +131,32 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       }
     ];
 
+    const updatedVariableCosts: CostItem[] = [
+      {
+        id: 'cloud-hosting',
+        name: 'Cloud Hosting',
+        monthlyAmounts: Array(12).fill(50),
+        icon: 'cloud',
+        isCommon: true,
+        unit: 'compute/storage scaling'
+      },
+      {
+        id: 'software-licenses',
+        name: 'Software Licenses',
+        monthlyAmounts: Array(12).fill(30),
+        icon: 'database',
+        isCommon: true,
+        unit: 'monthly'
+      },
+      ...data.variableCosts.filter(cost => !cost.isCommon)
+    ];
+
     onChange({ 
       ...data, 
       fixedCosts: updatedFixedCosts,
+      variableCosts: updatedVariableCosts,
     });
-  }, [employeeInputs, maintenanceCost, corporateOverheadRate, data.variableCosts, data.oneTimeCosts]);
+  }, [employeeInputs, maintenanceCost, corporateOverheadRate]);
 
   const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
     setEmployeeInputs(prev => ({ ...prev, [field]: value }));
