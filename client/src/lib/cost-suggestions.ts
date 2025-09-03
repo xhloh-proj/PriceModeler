@@ -229,6 +229,22 @@ const platformUniqueVariableCosts: CostItem[] = [
     isCommon: false
   },
   {
+    id: "api-gateway",
+    name: "API gateway",
+    monthlyAmounts: [800, 960, 1120, 1280, 1600, 1920, 2400, 2880, 3520, 4160, 4960, 5760],
+    icon: "layers",
+    unit: "per API call",
+    isCommon: false
+  },
+  {
+    id: "portal-maintenance",
+    name: "Portal maintenance",
+    monthlyAmounts: [600, 720, 840, 960, 1200, 1440, 1800, 2160, 2640, 3120, 3720, 4320],
+    icon: "globe",
+    unit: "per portal",
+    isCommon: false
+  },
+  {
     id: "penetration-testing",
     name: "Penetration testing",
     monthlyAmounts: [10, 12, 14, 16, 20, 24, 30, 36, 44, 52, 62, 72],
@@ -280,6 +296,14 @@ const applicationUniqueVariableCosts: CostItem[] = [
     monthlyAmounts: [200, 240, 280, 320, 400, 480, 600, 720, 880, 1040, 1240, 1440],
     icon: "bell",
     unit: "per notification sent",
+    isCommon: false
+  },
+  {
+    id: "push-notifications-postman",
+    name: "Push notifications/Postman",
+    monthlyAmounts: [150, 180, 210, 240, 300, 360, 450, 540, 660, 780, 930, 1080],
+    icon: "mail",
+    unit: "per message sent",
     isCommon: false
   },
   {
