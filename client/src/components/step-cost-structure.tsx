@@ -53,6 +53,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   
   const [maintenanceCost, setMaintenanceCost] = useState(50);
   const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
+  const [currentTab, setCurrentTab] = useState("fixed");
 
   // Calculate employee costs in thousands (240k per person annually)
   const calculateEmployeeCosts = (count: number) => {
@@ -281,6 +282,40 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     });
   };
 
+  const copyAcrossAllMonths = (costType: 'fixed' | 'variable') => {
+    const costs = costType === 'fixed' ? data.fixedCosts : data.variableCosts;
+    const updatedCosts = costs.map(cost => {
+      if (!cost.isCommon) { // Only apply to manually entered costs
+        const firstMonthValue = cost.monthlyAmounts[0] || 0;
+        return { ...cost, monthlyAmounts: Array(12).fill(firstMonthValue) };
+      }
+      return cost;
+    });
+
+    if (costType === 'fixed') {
+      onChange({ ...data, fixedCosts: updatedCosts });
+    } else {
+      onChange({ ...data, variableCosts: updatedCosts });
+    }
+  };
+
+  const handleTabNavigation = () => {
+    if (currentTab === 'fixed') {
+      setCurrentTab('variable');
+    } else if (currentTab === 'variable') {
+      setCurrentTab('onetime');
+    } else if (currentTab === 'onetime') {
+      setCurrentTab('total');
+    } else {
+      onNext(); // Go to demand analysis
+    }
+  };
+
+  const calculateAmortizedCapex = () => {
+    const totalCapex = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+    return Array(12).fill(Number((totalCapex / 36).toFixed(1))); // Amortize over 36 months
+  };
+
   const handlePasteData = (costType: 'fixed' | 'variable', costId: string, event: React.ClipboardEvent) => {
     event.preventDefault();
     const pasteData = event.clipboardData.getData('text');
@@ -389,14 +424,24 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       
       <div className="flex gap-2">
         {costType === 'fixed' && (
-          <Button onClick={addFixedCost} variant="outline" data-testid="button-add-fixed-cost">
-            Add Fixed Cost
-          </Button>
+          <>
+            <Button onClick={addFixedCost} variant="outline" data-testid="button-add-fixed-cost">
+              Add Fixed Cost
+            </Button>
+            <Button onClick={() => copyAcrossAllMonths('fixed')} variant="outline" data-testid="button-copy-fixed-costs">
+              Copy Jan Values Across All Months
+            </Button>
+          </>
         )}
         {costType === 'variable' && (
-          <Button onClick={addVariableCost} variant="outline" data-testid="button-add-variable-cost">
-            Add Variable Cost
-          </Button>
+          <>
+            <Button onClick={addVariableCost} variant="outline" data-testid="button-add-variable-cost">
+              Add Variable Cost
+            </Button>
+            <Button onClick={() => copyAcrossAllMonths('variable')} variant="outline" data-testid="button-copy-variable-costs">
+              Copy Jan Values Across All Months
+            </Button>
+          </>
         )}
       </div>
     </div>
@@ -412,8 +457,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       </div>
 
 
-      <Tabs defaultValue="fixed" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="fixed" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900">
             Fixed Costs
           </TabsTrigger>
@@ -422,6 +467,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
           </TabsTrigger>
           <TabsTrigger value="onetime" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
             Capex
+          </TabsTrigger>
+          <TabsTrigger value="total" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900">
+            Total Costs
           </TabsTrigger>
         </TabsList>
 
@@ -571,6 +619,97 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="total" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-purple-900">Total Cost Summary (thousands)</CardTitle>
+              <CardDescription>
+                Complete overview of all costs with Capex amortized over 36 months.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-800">
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Category</th>
+                      {months.map(month => (
+                        <th key={month} className="border border-gray-200 dark:border-gray-700 p-2 text-center min-w-20">
+                          {month}
+                        </th>
+                      ))}
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total (k)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-blue-900">Fixed Costs</td>
+                      {months.map((_, monthIndex) => {
+                        const monthlyTotal = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
+                        return (
+                          <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                            {monthlyTotal.toFixed(1)}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-orange-900">Variable Costs</td>
+                      {months.map((_, monthIndex) => {
+                        const monthlyTotal = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
+                        return (
+                          <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                            {monthlyTotal.toFixed(1)}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0).toFixed(1)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium text-green-900">Capex (Amortized)</td>
+                      {calculateAmortizedCapex().map((amount, monthIndex) => (
+                        <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                          {amount}
+                        </td>
+                      ))}
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
+                        {(data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0)).toFixed(1)}
+                      </td>
+                    </tr>
+                    <tr className="bg-gray-100 dark:bg-gray-800">
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 font-bold">Total Monthly Cost</td>
+                      {months.map((_, monthIndex) => {
+                        const fixedTotal = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
+                        const variableTotal = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts[monthIndex], 0);
+                        const capexAmortized = calculateAmortizedCapex()[monthIndex];
+                        const totalMonthly = fixedTotal + variableTotal + capexAmortized;
+                        return (
+                          <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center font-bold">
+                            {totalMonthly.toFixed(1)}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-bold">
+                        {(() => {
+                          const fixedAnnual = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+                          const variableAnnual = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+                          const capexAnnual = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
+                          return (fixedAnnual + variableAnnual + capexAnnual).toFixed(1);
+                        })()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       <div className="flex justify-between">
@@ -578,8 +717,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
           <ArrowLeft className="mr-2 h-4 w-4" />
           Previous
         </Button>
-        <Button onClick={onNext} data-testid="button-next">
-          Next
+        <Button onClick={handleTabNavigation} data-testid="button-next">
+          {currentTab === 'total' ? 'Next: Demand Analysis' : `Next: ${currentTab === 'fixed' ? 'Variable Costs' : currentTab === 'variable' ? 'Capex' : 'Total Costs'}`}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
