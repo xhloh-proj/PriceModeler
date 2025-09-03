@@ -670,6 +670,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Year 1 Financial Projection ($'000s)</h3>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
                   <thead>
@@ -838,7 +839,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
 
               {/* Multi-Year Projection Table */}
               <div className="mt-6 space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">5-Year Financial Projection</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">5-Year Financial Projection ($'000s)</h3>
                 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -893,23 +894,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
                           {yearlyData[4] ? yearlyData[4].toFixed(1) : '-'}
-                        </td>
-                      </tr>
-                      <tr className="text-sm text-gray-600 dark:text-gray-400">
-                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          $'000s
-                        </td>
-                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          $'000s
-                        </td>
-                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          $'000s
-                        </td>
-                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          $'000s
-                        </td>
-                        <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          $'000s
                         </td>
                       </tr>
                     </tbody>
