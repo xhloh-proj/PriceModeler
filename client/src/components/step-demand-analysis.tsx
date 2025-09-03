@@ -44,6 +44,7 @@ interface StepDemandAnalysisProps {
 
 export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onSave, onExport }: StepDemandAnalysisProps) {
   const [tempGrowthRate, setTempGrowthRate] = useState(data.growthRate);
+  const [fixedPrice, setFixedPrice] = useState<number>(0);
 
   const handleGrowthRateChange = (value: number) => {
     setTempGrowthRate(value);
@@ -113,6 +114,25 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
   };
 
   const pricingRecommendations = calculatePricingRecommendations();
+
+  // Calculate breakeven analysis for fixed price
+  const calculateBreakevenAnalysis = () => {
+    const totalCosts = calculateTotalCosts();
+    
+    if (fixedPrice === 0) return { breakeven: 0, tcrr110: 0, tcrr90: 0 };
+    
+    const breakevenUnits = Math.ceil(totalCosts / fixedPrice);
+    const tcrr110Units = Math.ceil((totalCosts / 1.1) / fixedPrice); // For 110% TCRR, need revenue = cost/1.1
+    const tcrr90Units = Math.ceil((totalCosts / 0.9) / fixedPrice); // For 90% TCRR, need revenue = cost/0.9
+    
+    return {
+      breakeven: breakevenUnits,
+      tcrr110: tcrr110Units,
+      tcrr90: tcrr90Units
+    };
+  };
+
+  const breakevenAnalysis = calculateBreakevenAnalysis();
 
   return (
     <div className="p-8">
@@ -235,6 +255,69 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
             <div><strong>Total 5-Year Costs:</strong> ${calculateTotalCosts().toLocaleString()} thousand</div>
             <div><strong>Total 5-Year Demand:</strong> {calculateTotalDemand().toLocaleString()} units</div>
             <div><strong>Note:</strong> TCRR = Total Cost Recovery Ratio</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Breakeven Analysis for Set Price */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-blue-900">Breakeven Analysis for Set Price</CardTitle>
+          <CardDescription>
+            Enter a fixed price per unit to see how many units are needed for different TCRR targets.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Label htmlFor="fixed-price" className="text-sm font-medium">Fixed Price per Unit:</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">$</span>
+                <Input
+                  id="fixed-price"
+                  type="number"
+                  value={fixedPrice || ''}
+                  onChange={(e) => setFixedPrice(Number(e.target.value) || 0)}
+                  className="w-32 text-center"
+                  min="0"
+                  step="0.01"
+                  data-testid="input-fixed-price"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            {fixedPrice > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Units to Breakeven</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {breakevenAnalysis.breakeven.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">units</div>
+                </div>
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-orange-600">Units for 110% TCRR</div>
+                  <div className="text-2xl font-bold text-orange-900 dark:text-orange-300">
+                    {breakevenAnalysis.tcrr110.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-orange-500 mt-1">units</div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                  <div className="text-sm font-medium text-green-600">Units for 90% TCRR</div>
+                  <div className="text-2xl font-bold text-green-900 dark:text-green-300">
+                    {breakevenAnalysis.tcrr90.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-green-500 mt-1">units</div>
+                </div>
+              </div>
+            )}
+            
+            {fixedPrice > 0 && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                <div><strong>At ${fixedPrice}/unit:</strong> Revenue scenarios based on total 5-year costs of ${calculateTotalCosts().toLocaleString()} thousand</div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
