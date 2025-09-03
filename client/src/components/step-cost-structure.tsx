@@ -59,6 +59,8 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     variable: false,
     capex: false
   });
+  const [inflationRate, setInflationRate] = useState(3);
+  const [yearlyData, setYearlyData] = useState<number[]>([]);
 
   // Calculate employee costs in thousands (240k per person annually)
   const calculateEmployeeCosts = (count: number) => {
@@ -331,6 +333,28 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       ...prev,
       [category]: !prev[category]
     }));
+  };
+
+  const calculateYear1Total = () => {
+    const fixedAnnual = data.fixedCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const variableAnnual = data.variableCosts.reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const capexAnnual = calculateAmortizedCapex().reduce((sum, amount) => sum + amount, 0);
+    return fixedAnnual + variableAnnual + capexAnnual;
+  };
+
+  const copyYearlyValuesWithInflation = () => {
+    const year1Total = calculateYear1Total();
+    const inflationMultiplier = 1 + (inflationRate / 100);
+    
+    const newYearlyData = [
+      year1Total, // Year 1
+      year1Total * inflationMultiplier, // Year 2
+      year1Total * Math.pow(inflationMultiplier, 2), // Year 3
+      year1Total * Math.pow(inflationMultiplier, 3), // Year 4
+      year1Total * Math.pow(inflationMultiplier, 4), // Year 5
+    ];
+    
+    setYearlyData(newYearlyData);
   };
 
   const handlePasteData = (costType: 'fixed' | 'variable', costId: string, event: React.ClipboardEvent) => {
@@ -656,7 +680,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           {month}
                         </th>
                       ))}
-                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total (k)</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total Year 1 (k)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -810,6 +834,63 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Multi-Year Projection Table */}
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="inflation-rate" className="text-sm font-medium">Inflation Rate:</Label>
+                    <Input
+                      id="inflation-rate"
+                      type="number"
+                      value={inflationRate}
+                      onChange={(e) => setInflationRate(Number(e.target.value))}
+                      className="w-20 h-8 text-center"
+                      min="0"
+                      max="20"
+                      step="0.1"
+                      data-testid="input-inflation-rate"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+                  <Button 
+                    onClick={copyYearlyValuesWithInflation} 
+                    variant="outline" 
+                    size="sm"
+                    data-testid="button-copy-yearly-values"
+                  >
+                    Copy Year 1 Values Across Years 2-5
+                  </Button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-gray-800">
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Year</th>
+                        <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Annual Total (k)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'].map((year, index) => (
+                        <tr key={year}>
+                          <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium">
+                            {year}
+                          </td>
+                          <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                            {index === 0 
+                              ? calculateYear1Total().toFixed(1)
+                              : yearlyData[index] 
+                                ? yearlyData[index].toFixed(1) 
+                                : '-'
+                            }
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>
