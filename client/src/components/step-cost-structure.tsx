@@ -54,9 +54,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   const [maintenanceCost, setMaintenanceCost] = useState(50);
   const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
 
-  // Calculate employee costs in thousands (250k per person annually)
+  // Calculate employee costs in thousands (240k per person annually)
   const calculateEmployeeCosts = (count: number) => {
-    const totalAnnual = count * 250; // Total annual cost in thousands
+    const totalAnnual = count * 240; // Total annual cost in thousands
     const monthlyTotal = totalAnnual / 12; // Monthly total in thousands
     return Array(12).fill(Number(monthlyTotal.toFixed(1)));
   };
@@ -96,7 +96,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
         icon: 'users',
         isCommon: true,
-        unit: `${employeeInputs.teamMembers} employees @ 250k/year = ${(employeeInputs.teamMembers * 250).toFixed(0)}k annually`
+        unit: `${employeeInputs.teamMembers} employees @ 240k/year = ${(employeeInputs.teamMembers * 240).toFixed(0)}k annually`
       },
       {
         id: 'augmented-resources',
@@ -104,7 +104,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
         icon: 'user-plus',
         isCommon: true,
-        unit: `${employeeInputs.augmentedResources} resources @ 250k/year = ${(employeeInputs.augmentedResources * 250).toFixed(0)}k annually`
+        unit: `${employeeInputs.augmentedResources} resources @ 240k/year = ${(employeeInputs.augmentedResources * 240).toFixed(0)}k annually`
       },
       {
         id: 'maintenance',
@@ -152,12 +152,41 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       ...data.variableCosts.filter(cost => !cost.isCommon)
     ];
 
+    // Add product-specific default Capex items for Infrastructure
+    let updatedOneTimeCosts = [...data.oneTimeCosts.filter(cost => !cost.isCommon)]; // Keep custom items
+    
+    if (data.productCategory === 'infrastructure') {
+      const hasOnPremServers = updatedOneTimeCosts.some(cost => cost.id === 'onprem-servers');
+      const hasVendorSetup = updatedOneTimeCosts.some(cost => cost.id === 'vendor-setup');
+      
+      if (!hasOnPremServers) {
+        updatedOneTimeCosts.unshift({
+          id: 'onprem-servers',
+          name: 'On-prem servers and networking',
+          amount: 75,
+          icon: 'server',
+          isCommon: true
+        });
+      }
+      
+      if (!hasVendorSetup) {
+        updatedOneTimeCosts.unshift({
+          id: 'vendor-setup',
+          name: 'Vendor set up costs',
+          amount: 20,
+          icon: 'building',
+          isCommon: true
+        });
+      }
+    }
+
     onChange({ 
       ...data, 
       fixedCosts: updatedFixedCosts,
       variableCosts: updatedVariableCosts,
+      oneTimeCosts: updatedOneTimeCosts,
     });
-  }, [employeeInputs, maintenanceCost, corporateOverheadRate]);
+  }, [employeeInputs, maintenanceCost, corporateOverheadRate, data.productCategory]);
 
   const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
     setEmployeeInputs(prev => ({ ...prev, [field]: value }));
@@ -402,7 +431,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
             <CardHeader>
               <CardTitle>Team Configuration</CardTitle>
               <CardDescription>
-                Simplified employee inputs - costs are auto-calculated at $250k/year per person
+                Simplified employee inputs - costs are auto-calculated at $240k/year per person
               </CardDescription>
             </CardHeader>
             <CardContent>
