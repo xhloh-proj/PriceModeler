@@ -295,7 +295,7 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
                     {breakevenAnalysis.breakeven.toLocaleString()}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    {breakevenAnalysis.breakeven.toLocaleString()} units | {Math.ceil(breakevenAnalysis.breakeven / 5).toLocaleString()}/year avg
+                    units | {Math.ceil(breakevenAnalysis.breakeven / 5).toLocaleString()}/year avg
                   </div>
                 </div>
                 <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
@@ -304,7 +304,7 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
                     {breakevenAnalysis.tcrr110.toLocaleString()}
                   </div>
                   <div className="text-xs text-orange-500 mt-1">
-                    {breakevenAnalysis.tcrr110.toLocaleString()} units | {Math.ceil(breakevenAnalysis.tcrr110 / 5).toLocaleString()}/year avg
+                    units | {Math.ceil(breakevenAnalysis.tcrr110 / 5).toLocaleString()}/year avg
                   </div>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
@@ -313,7 +313,7 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
                     {breakevenAnalysis.tcrr90.toLocaleString()}
                   </div>
                   <div className="text-xs text-green-500 mt-1">
-                    {breakevenAnalysis.tcrr90.toLocaleString()} units | {Math.ceil(breakevenAnalysis.tcrr90 / 5).toLocaleString()}/year avg
+                    units | {Math.ceil(breakevenAnalysis.tcrr90 / 5).toLocaleString()}/year avg
                   </div>
                 </div>
               </div>
