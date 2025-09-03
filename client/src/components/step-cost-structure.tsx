@@ -23,8 +23,7 @@ interface OneTimeCostItem {
   amount: number;
   icon: string;
   isCommon: boolean;
-  startMonth?: number;
-  endMonth?: number;
+  month?: number;
 }
 
 interface CostStructureData {
@@ -259,8 +258,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       amount: 0,
       icon: 'shield',
       isCommon: false,
-      startMonth: 1,
-      endMonth: 1,
+      month: 1,
     };
     onChange({ 
       ...data, 
@@ -306,16 +304,11 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     const monthlyAmounts = Array(12).fill(0);
     
     data.oneTimeCosts.forEach(cost => {
-      const startMonth = (cost.startMonth || 1) - 1; // Convert to 0-based index
-      const endMonth = (cost.endMonth || 1) - 1; // Convert to 0-based index
-      const numMonths = Math.max(1, endMonth - startMonth + 1);
-      const monthlyAmount = cost.amount / numMonths;
+      const month = (cost.month || 1) - 1; // Convert to 0-based index
       
-      // Spread the cost across the selected months
-      for (let i = startMonth; i <= endMonth; i++) {
-        if (i >= 0 && i < 12) {
-          monthlyAmounts[i] += monthlyAmount;
-        }
+      // Add the full cost to the selected month
+      if (month >= 0 && month < 12) {
+        monthlyAmounts[month] += cost.amount;
       }
     });
     
@@ -695,8 +688,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount $'000s</th>
-                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Start Month</th>
-                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">End Month</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Month Incurred</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -736,32 +728,10 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           </td>
                           <td className="border border-gray-200 dark:border-gray-700 p-1">
                             <Select
-                              value={cost.startMonth?.toString() || "1"}
+                              value={cost.month?.toString() || "1"}
                               onValueChange={(value) => {
                                 const updatedCosts = data.oneTimeCosts.map(c => 
-                                  c.id === cost.id ? { ...c, startMonth: Number(value) } : c
-                                );
-                                onChange({ ...data, oneTimeCosts: updatedCosts });
-                              }}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue placeholder="P1" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 12 }, (_, i) => (
-                                  <SelectItem key={i + 1} value={(i + 1).toString()}>
-                                    P{i + 1}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </td>
-                          <td className="border border-gray-200 dark:border-gray-700 p-1">
-                            <Select
-                              value={cost.endMonth?.toString() || "1"}
-                              onValueChange={(value) => {
-                                const updatedCosts = data.oneTimeCosts.map(c => 
-                                  c.id === cost.id ? { ...c, endMonth: Number(value) } : c
+                                  c.id === cost.id ? { ...c, month: Number(value) } : c
                                 );
                                 onChange({ ...data, oneTimeCosts: updatedCosts });
                               }}
@@ -925,16 +895,14 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     {expandedCategories.capex && data.oneTimeCosts.map((cost) => (
                       <tr key={cost.id} className="bg-green-50 dark:bg-green-950/20">
                         <td className="border border-gray-200 dark:border-gray-700 p-2 pl-8 text-sm text-gray-600 dark:text-gray-400">
-                          {cost.name} (P{cost.startMonth || 1}-P{cost.endMonth || 1})
+                          {cost.name} (P{cost.month || 1})
                         </td>
                         {Array.from({ length: 12 }, (_, monthIndex) => {
-                          const startMonth = (cost.startMonth || 1) - 1;
-                          const endMonth = (cost.endMonth || 1) - 1;
-                          const numMonths = Math.max(1, endMonth - startMonth + 1);
-                          const monthlyAmount = (monthIndex >= startMonth && monthIndex <= endMonth) ? cost.amount / numMonths : 0;
+                          const selectedMonth = (cost.month || 1) - 1;
+                          const amount = monthIndex === selectedMonth ? cost.amount : 0;
                           return (
                             <td key={monthIndex} className="border border-gray-200 dark:border-gray-700 p-2 text-center text-sm">
-                              {monthlyAmount.toFixed(1)}
+                              {amount.toFixed(1)}
                             </td>
                           );
                         })}
