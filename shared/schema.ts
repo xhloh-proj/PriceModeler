@@ -8,7 +8,6 @@ export const pricingProjects = pgTable("pricing_projects", {
   name: text("name").notNull(),
   category: text("category").notNull(),
   description: text("description"),
-  targetMarket: text("target_market"),
   fixedCosts: jsonb("fixed_costs").default([]).$type<Array<{id: string; name: string; monthlyAmounts: number[]; icon: string; isCommon: boolean}>>(),
   variableCosts: jsonb("variable_costs").default([]).$type<Array<{id: string; name: string; monthlyAmounts: number[]; unit: string; icon: string; isCommon: boolean}>>(),
   oneTimeCosts: jsonb("one_time_costs").default([]).$type<Array<{id: string; name: string; amount: number; icon: string; isCommon: boolean; month?: number}>>(),

@@ -15,7 +15,7 @@ export default function HeaderNavigation({ onSave, onExport }: HeaderNavigationP
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <ChartLine className="text-primary-foreground w-4 h-4" />
             </div>
-            <h1 className="text-xl font-semibold text-foreground">Pricing & Modeling Studio</h1>
+            <h1 className="text-xl font-semibold text-foreground">Price Modeller (Single Product)</h1>
           </div>
         </div>
         <div className="flex items-center space-x-4">

@@ -10,7 +10,6 @@ interface ProductData {
   name: string;
   category: string;
   description: string;
-  targetMarket: string;
 }
 
 interface StepProductSetupProps {
@@ -84,25 +83,6 @@ export default function StepProductSetup({ data, onChange, onNext }: StepProduct
                 />
               </div>
               
-              <div>
-                <Label htmlFor="target-market" className="text-sm font-medium text-card-foreground">
-                  Target Market <span className="text-muted-foreground">(Optional)</span>
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1 mb-2">
-                  This helps tailor cost suggestions and pricing benchmarks to your audience size and complexity
-                </p>
-                <Select value={data.targetMarket} onValueChange={(value) => handleInputChange('targetMarket', value)}>
-                  <SelectTrigger className="mt-2" data-testid="select-target-market">
-                    <SelectValue placeholder="Select target market" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="enterprise">Enterprise (1000+ employees)</SelectItem>
-                    <SelectItem value="smb">Small & Medium Business (10-999 employees)</SelectItem>
-                    <SelectItem value="startup">Startups (1-10 employees)</SelectItem>
-                    <SelectItem value="consumer">Individual Consumers</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             
             <div className="flex justify-end mt-8">

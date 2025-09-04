@@ -16,7 +16,6 @@ export default function PricingStudio() {
     name: "",
     category: "",
     description: "",
-    targetMarket: "",
     fixedCosts: [],
     variableCosts: [],
     oneTimeCosts: [],
@@ -50,7 +49,7 @@ export default function PricingStudio() {
     },
   });
 
-  const handleProductDataChange = (data: { name: string; category: string; description: string; targetMarket: string }) => {
+  const handleProductDataChange = (data: { name: string; category: string; description: string }) => {
     setProjectData(prev => ({ ...prev, ...data }));
   };
 
@@ -115,7 +114,6 @@ export default function PricingStudio() {
               name: projectData.name,
               category: projectData.category,
               description: projectData.description || "",
-              targetMarket: projectData.targetMarket,
             }}
             onChange={handleProductDataChange}
             onNext={() => setCurrentStep(2)}
