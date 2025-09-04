@@ -538,17 +538,17 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <div>• Multiple rows: Paste multiple Excel rows to fill multiple cost items at once</div>
       </div>
       <div className="overflow-x-auto" onPaste={(e) => handleTablePaste(costType, e)}>
-        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700" style={{fontSize: '12px'}}>
+        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700" style={{fontSize: '10px', tableLayout: 'fixed'}}>
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800">
-              <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
+              <th className="border border-gray-200 dark:border-gray-700 p-1 text-left text-xs" style={{width: '160px'}}>Cost Item</th>
               {months.map(month => (
-                <th key={month} className="border border-gray-200 dark:border-gray-700 p-2 text-center min-w-20">
+                <th key={month} className="border border-gray-200 dark:border-gray-700 p-1 text-center text-xs" style={{width: '42px'}}>
                   {month}
                 </th>
               ))}
-              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total $'000s</th>
-              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Remove</th>
+              <th className="border border-gray-200 dark:border-gray-700 p-1 text-center text-xs" style={{width: '60px'}}>Total</th>
+              <th className="border border-gray-200 dark:border-gray-700 p-1 text-center text-xs" style={{width: '50px'}}>Remove</th>
             </tr>
           </thead>
           <tbody>

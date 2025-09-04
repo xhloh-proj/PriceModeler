@@ -15,9 +15,9 @@ export default function StepSidebar({ currentStep, projectName, onStepChange }: 
   ];
 
   return (
-    <aside className="w-64 bg-card border-r border-border">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold text-card-foreground mb-6">Project Steps</h2>
+    <aside className="w-48 bg-card border-r border-border">
+      <div className="p-4">
+        <h2 className="text-base font-semibold text-card-foreground mb-4">Project Steps</h2>
         
         <div className="space-y-4">
           {steps.map((step) => (
@@ -48,7 +48,7 @@ export default function StepSidebar({ currentStep, projectName, onStepChange }: 
                 >
                   {step.title}
                 </div>
-                <div className="text-sm text-muted-foreground">{step.subtitle}</div>
+                <div className="text-xs text-muted-foreground">{step.subtitle}</div>
               </div>
             </div>
           ))}
