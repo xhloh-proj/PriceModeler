@@ -54,7 +54,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     augmentedResources: 2,
   });
   
-  const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
   const [currentTab, setCurrentTab] = useState("fixed");
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({
     fixed: false,
@@ -82,18 +81,31 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     return totalFixed + totalVariable + totalOneTime;
   };
 
-  // Calculate corporate overheads
+  // Calculate corporate overheads: 2% of fixed costs + 2% of variable costs (including depreciation)
   const calculateCorporateOverheads = () => {
-    // Calculate totals excluding corporate overheads to avoid circular calculation
+    // Calculate fixed costs excluding corporate overheads to avoid circular calculation
     const totalFixed = data.fixedCosts
       .filter(cost => cost.id !== 'corporate-overheads')
       .reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    
+    // Calculate variable costs
     const totalVariable = data.variableCosts.reduce((sum, cost) => 
       sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
-    const totalOneTime = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
     
-    const totalCosts = totalFixed + totalVariable + totalOneTime;
-    const monthlyOverhead = (totalCosts * (corporateOverheadRate / 100)) / 12;
+    // Calculate depreciation for year 1 (monthly equivalent)
+    const yearOneDepreciation = data.oneTimeCosts.reduce((total, cost) => {
+      const incurredMonth = cost.month || 1;
+      const monthlyDepreciation = cost.amount / 36; // 36-month depreciation
+      const monthsInYear1 = Math.min(12, 13 - incurredMonth); // Months remaining in year 1
+      return total + (monthlyDepreciation * monthsInYear1);
+    }, 0);
+    
+    // Corporate overheads = 2% of fixed + 2% of (variable + depreciation)
+    const fixedOverhead = totalFixed * 0.02;
+    const variableOverhead = (totalVariable + yearOneDepreciation) * 0.02;
+    const totalAnnualOverhead = fixedOverhead + variableOverhead;
+    const monthlyOverhead = totalAnnualOverhead / 12;
+    
     return Array(12).fill(Number(monthlyOverhead.toFixed(1)));
   };
 
@@ -126,7 +138,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         monthlyAmounts: calculateCorporateOverheads(),
         icon: 'building',
         isCommon: true,
-        unit: `${corporateOverheadRate}% of total costs (includes software licenses, office rental, legal compliance)`
+        unit: `2% of fixed + 2% of variable costs incl. depreciation (software licenses, office rental, legal compliance)`
       }
     ];
 
@@ -170,7 +182,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
       variableCosts: updatedVariableCosts,
       oneTimeCosts: updatedOneTimeCosts,
     });
-  }, [employeeInputs, corporateOverheadRate, data.productCategory]);
+  }, [employeeInputs, data.productCategory, data.fixedCosts, data.variableCosts, data.oneTimeCosts]);
 
   const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
     setEmployeeInputs(prev => ({ ...prev, [field]: value }));
@@ -664,16 +676,6 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     value={employeeInputs.augmentedResources}
                     onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
                     data-testid="input-augmented-resources"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="corporate-overhead-rate">Corporate Overhead Rate (%)</Label>
-                  <Input
-                    id="corporate-overhead-rate"
-                    type="number"
-                    value={corporateOverheadRate}
-                    onChange={(e) => setCorporateOverheadRate(Number(e.target.value))}
-                    data-testid="input-corporate-overhead-rate"
                   />
                 </div>
               </div>
