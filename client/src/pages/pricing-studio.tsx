@@ -182,7 +182,7 @@ export default function PricingStudio() {
     <div className="min-h-screen bg-background">
       <HeaderNavigation onSave={handleSave} onExport={handleExport} />
       <div className="flex h-screen">
-        <StepSidebar currentStep={currentStep} projectName={projectData.name} />
+        <StepSidebar currentStep={currentStep} projectName={projectData.name} onStepChange={setCurrentStep} />
         <main className="flex-1 overflow-auto">
           {renderCurrentStep()}
         </main>

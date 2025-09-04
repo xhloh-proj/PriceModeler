@@ -3,9 +3,10 @@ import { Card } from "@/components/ui/card";
 interface StepSidebarProps {
   currentStep: number;
   projectName: string;
+  onStepChange?: (step: number) => void;
 }
 
-export default function StepSidebar({ currentStep, projectName }: StepSidebarProps) {
+export default function StepSidebar({ currentStep, projectName, onStepChange }: StepSidebarProps) {
   const steps = [
     { number: 1, title: "Product Setup", subtitle: "Name & nature" },
     { number: 2, title: "Cost Structure", subtitle: "Fixed & variable costs" },
@@ -22,12 +23,13 @@ export default function StepSidebar({ currentStep, projectName }: StepSidebarPro
           {steps.map((step) => (
             <div
               key={step.number}
-              className={`flex items-center space-x-3 p-3 rounded-lg ${
+              className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
                 step.number <= currentStep
                   ? "bg-primary/10 border-l-4 border-primary"
                   : ""
               }`}
               data-testid={`step-indicator-${step.number}`}
+              onClick={() => onStepChange && onStepChange(step.number)}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
