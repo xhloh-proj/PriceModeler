@@ -108,23 +108,25 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
   useEffect(() => {
     if (!isInitialized.current && data.productCategory && data.fixedCosts.length === 0) {
       const suggestions = getCostSuggestions(data.productCategory);
+      const currentTeamMembers = 5;
+      const currentAugmentedResources = 2;
 
       const systemFixedCosts: CostItem[] = [
         {
           id: 'team-members',
           name: 'Expenditure on Manpower',
-          monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
+          monthlyAmounts: calculateEmployeeCosts(currentTeamMembers),
           icon: 'users',
           isCommon: true,
-          unit: `${employeeInputs.teamMembers} employees @ 240k/year = ${(employeeInputs.teamMembers * 240).toFixed(0)}k annually`
+          unit: `${currentTeamMembers} employees @ 240k/year = ${(currentTeamMembers * 240).toFixed(0)}k annually`
         },
         {
           id: 'augmented-resources',
           name: 'Augmented Resources',
-          monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
+          monthlyAmounts: calculateEmployeeCosts(currentAugmentedResources),
           icon: 'user-plus',
           isCommon: true,
-          unit: `${employeeInputs.augmentedResources} resources @ 240k/year = ${(employeeInputs.augmentedResources * 240).toFixed(0)}k annually`
+          unit: `${currentAugmentedResources} resources @ 240k/year = ${(currentAugmentedResources * 240).toFixed(0)}k annually`
         },
         {
           id: 'corporate-overheads',
@@ -536,7 +538,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
         <div>• Multiple rows: Paste multiple Excel rows to fill multiple cost items at once</div>
       </div>
       <div className="overflow-x-auto" onPaste={(e) => handleTablePaste(costType, e)}>
-        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
+        <table className="w-full border-collapse border border-gray-200 dark:border-gray-700" style={{fontSize: '12px'}}>
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800">
               <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
@@ -1060,16 +1062,56 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                           {calculateYear1Total().toFixed(1)}
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          {yearlyData[1] ? yearlyData[1].toFixed(1) : '-'}
+                          <Input
+                            type="number"
+                            value={yearlyData[1] || ''}
+                            onChange={(e) => {
+                              const newData = [...yearlyData];
+                              newData[1] = Number(e.target.value) || 0;
+                              setYearlyData(newData);
+                            }}
+                            className="w-full text-center h-8"
+                            placeholder="0"
+                          />
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          {yearlyData[2] ? yearlyData[2].toFixed(1) : '-'}
+                          <Input
+                            type="number"
+                            value={yearlyData[2] || ''}
+                            onChange={(e) => {
+                              const newData = [...yearlyData];
+                              newData[2] = Number(e.target.value) || 0;
+                              setYearlyData(newData);
+                            }}
+                            className="w-full text-center h-8"
+                            placeholder="0"
+                          />
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          {yearlyData[3] ? yearlyData[3].toFixed(1) : '-'}
+                          <Input
+                            type="number"
+                            value={yearlyData[3] || ''}
+                            onChange={(e) => {
+                              const newData = [...yearlyData];
+                              newData[3] = Number(e.target.value) || 0;
+                              setYearlyData(newData);
+                            }}
+                            className="w-full text-center h-8"
+                            placeholder="0"
+                          />
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
-                          {yearlyData[4] ? yearlyData[4].toFixed(1) : '-'}
+                          <Input
+                            type="number"
+                            value={yearlyData[4] || ''}
+                            onChange={(e) => {
+                              const newData = [...yearlyData];
+                              newData[4] = Number(e.target.value) || 0;
+                              setYearlyData(newData);
+                            }}
+                            className="w-full text-center h-8"
+                            placeholder="0"
+                          />
                         </td>
                         <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-bold">
                           {(() => {
