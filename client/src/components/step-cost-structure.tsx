@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCostSuggestions } from "@/lib/cost-suggestions";
 
 interface CostItem {
@@ -54,7 +54,9 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     augmentedResources: 2,
   });
   
+  const [corporateOverheadRate, setCorporateOverheadRate] = useState(4);
   const [currentTab, setCurrentTab] = useState("fixed");
+  const isInitialized = useRef(false);
   const [expandedCategories, setExpandedCategories] = useState<{[key: string]: boolean}>({
     fixed: false,
     variable: false,
@@ -81,108 +83,88 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     return totalFixed + totalVariable + totalOneTime;
   };
 
-  // Calculate corporate overheads: 2% of fixed costs + 2% of variable costs (including depreciation)
+  // Calculate corporate overheads
   const calculateCorporateOverheads = () => {
-    // Calculate fixed costs excluding corporate overheads to avoid circular calculation
+    // Calculate totals excluding corporate overheads to avoid circular calculation
     const totalFixed = data.fixedCosts
       .filter(cost => cost.id !== 'corporate-overheads')
       .reduce((sum, cost) => sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
-    
-    // Calculate variable costs
     const totalVariable = data.variableCosts.reduce((sum, cost) => 
       sum + cost.monthlyAmounts.reduce((monthSum, amount) => monthSum + amount, 0), 0);
+    const totalOneTime = data.oneTimeCosts.reduce((sum, cost) => sum + cost.amount, 0);
     
-    // Calculate depreciation for year 1 (monthly equivalent)
-    const yearOneDepreciation = data.oneTimeCosts.reduce((total, cost) => {
-      const incurredMonth = cost.month || 1;
-      const monthlyDepreciation = cost.amount / 36; // 36-month depreciation
-      const monthsInYear1 = Math.min(12, 13 - incurredMonth); // Months remaining in year 1
-      return total + (monthlyDepreciation * monthsInYear1);
-    }, 0);
-    
-    // Corporate overheads = 2% of fixed + 2% of (variable + depreciation)
-    const fixedOverhead = totalFixed * 0.02;
-    const variableOverhead = (totalVariable + yearOneDepreciation) * 0.02;
-    const totalAnnualOverhead = fixedOverhead + variableOverhead;
-    const monthlyOverhead = totalAnnualOverhead / 12;
-    
+    const totalCosts = totalFixed + totalVariable + totalOneTime;
+    const monthlyOverhead = (totalCosts * (corporateOverheadRate / 100)) / 12;
     return Array(12).fill(Number(monthlyOverhead.toFixed(1)));
   };
 
-  // Update costs when employee inputs change or product category changes
+  // Initialize costs when component loads
   useEffect(() => {
-    // Get product-specific cost suggestions
-    const suggestions = getCostSuggestions(data.productCategory);
+    if (!isInitialized.current && data.productCategory) {
+      // Get product-specific cost suggestions only on first load
+      const suggestions = getCostSuggestions(data.productCategory);
 
-    // Create system-calculated fixed costs (employee costs and corporate overheads)
-    const systemFixedCosts: CostItem[] = [
-      {
-        id: 'team-members',
-        name: 'Expenditure on Manpower',
-        monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
-        icon: 'users',
-        isCommon: true,
-        unit: `${employeeInputs.teamMembers} employees @ 240k/year = ${(employeeInputs.teamMembers * 240).toFixed(0)}k annually`
-      },
-      {
-        id: 'augmented-resources',
-        name: 'Augmented Resources',
-        monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
-        icon: 'user-plus',
-        isCommon: true,
-        unit: `${employeeInputs.augmentedResources} resources @ 240k/year = ${(employeeInputs.augmentedResources * 240).toFixed(0)}k annually`
-      },
-      {
-        id: 'corporate-overheads',
-        name: 'Corporate Overheads',
-        monthlyAmounts: calculateCorporateOverheads(),
-        icon: 'building',
-        isCommon: true,
-        unit: `2% of fixed + 2% of variable costs incl. depreciation (software licenses, office rental, legal compliance)`
+      // Initialize with suggested costs if data is empty
+      if (data.fixedCosts.length === 0 && data.variableCosts.length === 0) {
+        const systemFixedCosts: CostItem[] = [
+          {
+            id: 'team-members',
+            name: 'Expenditure on Manpower',
+            monthlyAmounts: calculateEmployeeCosts(employeeInputs.teamMembers),
+            icon: 'users',
+            isCommon: true,
+            unit: `${employeeInputs.teamMembers} employees @ 240k/year = ${(employeeInputs.teamMembers * 240).toFixed(0)}k annually`
+          },
+          {
+            id: 'augmented-resources',
+            name: 'Augmented Resources',
+            monthlyAmounts: calculateEmployeeCosts(employeeInputs.augmentedResources),
+            icon: 'user-plus',
+            isCommon: true,
+            unit: `${employeeInputs.augmentedResources} resources @ 240k/year = ${(employeeInputs.augmentedResources * 240).toFixed(0)}k annually`
+          },
+          {
+            id: 'corporate-overheads',
+            name: 'Corporate Overheads',
+            monthlyAmounts: Array(12).fill(10), // Initial default value
+            icon: 'building',
+            isCommon: true,
+            unit: `${corporateOverheadRate}% of total costs (includes software licenses, office rental, legal compliance)`
+          }
+        ];
+
+        const initialFixedCosts = [
+          ...systemFixedCosts,
+          ...suggestions.fixedCosts.map(cost => ({ 
+            ...cost, 
+            monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
+            isCommon: true
+          }))
+        ];
+
+        const initialVariableCosts = suggestions.variableCosts.map(cost => ({ 
+          ...cost, 
+          monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
+          isCommon: true
+        }));
+
+        const initialOneTimeCosts = suggestions.oneTimeCosts.map(cost => ({ 
+          ...cost, 
+          amount: cost.amount / 1000,
+          isCommon: true
+        }));
+
+        onChange({ 
+          ...data, 
+          fixedCosts: initialFixedCosts,
+          variableCosts: initialVariableCosts,
+          oneTimeCosts: initialOneTimeCosts,
+        });
       }
-    ];
-
-    // Keep only user's custom costs (not common/system costs)
-    const existingCustomFixed = data.fixedCosts.filter(cost => !cost.isCommon);
-    const existingCustomVariable = data.variableCosts.filter(cost => !cost.isCommon);
-    const existingCustomOneTime = data.oneTimeCosts.filter(cost => !cost.isCommon);
-
-    // Rebuild costs from scratch to avoid duplicates
-    const updatedFixedCosts = [
-      ...systemFixedCosts,
-      ...suggestions.fixedCosts.map(cost => ({ 
-        ...cost, 
-        monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
-        isCommon: true // Mark as common to prevent duplication
-      })),
-      ...existingCustomFixed
-    ];
-
-    const updatedVariableCosts = [
-      ...suggestions.variableCosts.map(cost => ({ 
-        ...cost, 
-        monthlyAmounts: cost.monthlyAmounts.map(amount => amount / 1000),
-        isCommon: true // Mark as common to prevent duplication
-      })),
-      ...existingCustomVariable
-    ];
-
-    const updatedOneTimeCosts = [
-      ...suggestions.oneTimeCosts.map(cost => ({ 
-        ...cost, 
-        amount: cost.amount / 1000,
-        isCommon: true // Mark as common to prevent duplication
-      })),
-      ...existingCustomOneTime
-    ];
-
-    onChange({ 
-      ...data, 
-      fixedCosts: updatedFixedCosts,
-      variableCosts: updatedVariableCosts,
-      oneTimeCosts: updatedOneTimeCosts,
-    });
-  }, [employeeInputs, data.productCategory, data.fixedCosts, data.variableCosts, data.oneTimeCosts]);
+      
+      isInitialized.current = true;
+    }
+  }, [data.productCategory]);
 
   const handleEmployeeInputChange = (field: keyof EmployeeInputs, value: number) => {
     setEmployeeInputs(prev => ({ ...prev, [field]: value }));
@@ -676,6 +658,16 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                     value={employeeInputs.augmentedResources}
                     onChange={(e) => handleEmployeeInputChange('augmentedResources', Number(e.target.value))}
                     data-testid="input-augmented-resources"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="corporate-overhead-rate">Corporate Overhead Rate (%)</Label>
+                  <Input
+                    id="corporate-overhead-rate"
+                    type="number"
+                    value={corporateOverheadRate}
+                    onChange={(e) => setCorporateOverheadRate(Number(e.target.value))}
+                    data-testid="input-corporate-overhead-rate"
                   />
                 </div>
               </div>
