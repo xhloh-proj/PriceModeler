@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Users, UserPlus, Cog, Building, Cloud, Database, Shield, Plus, Minus, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getCostSuggestions } from "@/lib/cost-suggestions";
 
@@ -288,6 +288,25 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
     }
   };
 
+  // Remove cost functions
+  const removeFixedCost = (costId: string) => {
+    // Don't allow removal of system-generated costs
+    if (['team-members', 'augmented-resources', 'corporate-overheads'].includes(costId)) return;
+    
+    const updatedCosts = data.fixedCosts.filter(cost => cost.id !== costId);
+    onChange({ ...data, fixedCosts: updatedCosts });
+  };
+
+  const removeVariableCost = (costId: string) => {
+    const updatedCosts = data.variableCosts.filter(cost => cost.id !== costId);
+    onChange({ ...data, variableCosts: updatedCosts });
+  };
+
+  const removeOneTimeCost = (costId: string) => {
+    const updatedCosts = data.oneTimeCosts.filter(cost => cost.id !== costId);
+    onChange({ ...data, oneTimeCosts: updatedCosts });
+  };
+
   const handleTabNavigation = () => {
     if (currentTab === 'fixed') {
       setCurrentTab('variable');
@@ -489,6 +508,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                 </th>
               ))}
               <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Total $'000s</th>
+              <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Remove</th>
             </tr>
           </thead>
           <tbody>
@@ -542,6 +562,20 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                   ))}
                   <td className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium">
                     {total.toFixed(1)}
+                  </td>
+                  <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                    {/* Don't show remove button for system-generated costs */}
+                    {!['team-members', 'augmented-resources', 'corporate-overheads'].includes(cost.id) && (
+                      <Button
+                        onClick={() => costType === 'fixed' ? removeFixedCost(cost.id) : removeVariableCost(cost.id)}
+                        variant="outline"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-red-50 hover:border-red-300"
+                        data-testid={`button-remove-${costType}-${cost.id}`}
+                      >
+                        <X className="h-3 w-3 text-red-500" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               );
@@ -689,6 +723,7 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-left">Cost Item</th>
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Amount $'000s</th>
                       <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Month Incurred</th>
+                      <th className="border border-gray-200 dark:border-gray-700 p-2 text-center">Remove</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -747,6 +782,17 @@ export default function StepCostStructure({ data, onChange, onNext, onPrevious }
                                 ))}
                               </SelectContent>
                             </Select>
+                          </td>
+                          <td className="border border-gray-200 dark:border-gray-700 p-2 text-center">
+                            <Button
+                              onClick={() => removeOneTimeCost(cost.id)}
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-red-50 hover:border-red-300"
+                              data-testid={`button-remove-onetime-${cost.id}`}
+                            >
+                              <X className="h-3 w-3 text-red-500" />
+                            </Button>
                           </td>
                         </tr>
                       );
