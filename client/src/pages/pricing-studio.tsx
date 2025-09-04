@@ -142,6 +142,7 @@ export default function PricingStudio() {
             data={{
               growthRate: projectData.growthRate || 0,
               productDemand: projectData.productDemand || [0, 0, 0, 0, 0],
+              productName: projectData.name,
             }}
             projectData={{
               fixedCosts: projectData.fixedCosts || [],
@@ -153,6 +154,7 @@ export default function PricingStudio() {
             onNext={() => setCurrentStep(4)}
             onSave={handleSave}
             onExport={handleExport}
+            onProductNameChange={(name: string) => setProjectData({ ...projectData, name })}
           />
         );
       case 4:

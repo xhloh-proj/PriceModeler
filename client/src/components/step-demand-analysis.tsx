@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 interface DemandAnalysisData {
   growthRate: number;
   productDemand: number[];
+  productName?: string;
 }
 
 interface CostItem {
@@ -41,9 +42,10 @@ interface StepDemandAnalysisProps {
   onNext?: () => void;
   onSave: () => void;
   onExport: () => void;
+  onProductNameChange?: (name: string) => void;
 }
 
-export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onNext, onSave, onExport }: StepDemandAnalysisProps) {
+export default function StepDemandAnalysis({ data, projectData, onChange, onPrevious, onNext, onSave, onExport, onProductNameChange }: StepDemandAnalysisProps) {
   const [tempGrowthRate, setTempGrowthRate] = useState(data.growthRate);
   const [fixedPrice, setFixedPrice] = useState<number>(0);
 
@@ -148,7 +150,7 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
         <CardHeader>
           <CardTitle className="text-blue-900">Product Demand Projections</CardTitle>
           <CardDescription>
-            Enter demand projections for Product 1 across a 5-year period.
+            Enter demand projections for {data.productName || 'your product'} across a 5-year period.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -198,7 +200,13 @@ export default function StepDemandAnalysis({ data, projectData, onChange, onPrev
               <tbody>
                 <tr>
                   <td className="border border-gray-200 dark:border-gray-700 p-2 font-medium">
-                    Product 1
+                    <Input
+                      value={data.productName || 'Product 1'}
+                      onChange={(e) => onProductNameChange?.(e.target.value)}
+                      className="border-0 font-medium bg-transparent p-0 h-auto focus-visible:ring-0"
+                      data-testid="input-product-name"
+                      placeholder="Product 1"
+                    />
                   </td>
                   {[0, 1, 2, 3, 4].map((yearIndex) => (
                     <td key={yearIndex} className="border border-gray-200 dark:border-gray-700 p-1">
